@@ -1,0 +1,1772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GlowBet Admin Panel</title>
+  
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: #333;
+      min-height: 100vh;
+    }
+
+    /* Login Page */
+    .admin-login {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .login-container {
+      background: white;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    .admin-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .admin-logo h1 {
+      color: #1e3c72;
+      font-size: 32px;
+      margin-bottom: 5px;
+    }
+
+    .admin-logo p {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .form-group input:focus {
+      border-color: #1e3c72;
+      outline: none;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
+    }
+
+    /* Dashboard */
+    .admin-dashboard {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      background: white;
+      padding: 20px 30px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .admin-header h2 {
+      color: #1e3c72;
+      font-size: 24px;
+    }
+
+    .logout-btn {
+      background: #ff4444;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .admin-content {
+      padding: 30px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .stat-card h3 {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .stat-card .stat-value {
+      color: #1e3c72;
+      font-size: 32px;
+      font-weight: bold;
+    }
+
+    .section-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #1e3c72;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .game-control {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .control-box {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      border: 2px solid #e0e0e0;
+    }
+
+    .control-label {
+      font-weight: 600;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .control-value {
+      font-size: 24px;
+      color: #1e3c72;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .number-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .number-btn {
+      padding: 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      text-align: center;
+      transition: all 0.3s;
+      background: white;
+    }
+
+    .number-btn:hover {
+      transform: scale(1.05);
+      border-color: #1e3c72;
+    }
+
+    .number-btn.selected {
+      background: #1e3c72;
+      color: white;
+      border-color: #1e3c72;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      background: white;
+      transition: all 0.3s;
+    }
+
+    .mode-btn.active {
+      background: #00a86b;
+      color: white;
+      border-color: #00a86b;
+    }
+
+    /* 🆕 SCROLLABLE TABLE CONTAINER */
+    .table-container {
+      max-height: 400px;
+      overflow-y: auto;
+      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 8px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+      font-size: 14px;
+    }
+
+    .data-table th {
+      background: #f8f9fa;
+      font-weight: 600;
+      color: #333;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .data-table tr:hover {
+      background: #f8f9fa;
+    }
+
+    .action-btn {
+      padding: 8px 15px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      margin-right: 5px;
+      margin-bottom: 5px;
+      transition: all 0.3s;
+    }
+
+    .inspect-btn {
+      background: #2196F3;
+      color: white;
+    }
+
+    .approve-btn {
+      background: #00a86b;
+      color: white;
+    }
+
+    .reject-btn {
+      background: #ff4444;
+      color: white;
+    }
+
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-approved {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-rejected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-active {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-banned {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-suspended {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      overflow-y: auto;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      margin: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .modal-header h3 {
+      color: #1e3c72;
+      font-size: 24px;
+    }
+
+    .close-modal {
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #999;
+    }
+
+    .close-modal:hover {
+      color: #333;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: #666;
+    }
+
+    .detail-value {
+      color: #333;
+      font-weight: 500;
+    }
+
+    .modal-actions {
+      margin-top: 25px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .modal-btn {
+      flex: 1;
+      min-width: 120px;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .modal-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .ban-btn {
+      background: #ff4444;
+      color: white;
+    }
+
+    .suspend-btn {
+      background: #ff9800;
+      color: white;
+    }
+
+    .unban-btn {
+      background: #00a86b;
+      color: white;
+    }
+
+    .adjust-btn {
+      background: #2196F3;
+      color: white;
+    }
+
+    /* Notification */
+    .notification {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      padding: 20px 25px;
+      border-radius: 10px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      z-index: 10000;
+      display: none;
+      min-width: 300px;
+    }
+
+    .notification.success {
+      border-left: 4px solid #00a86b;
+    }
+
+    .notification.error {
+      border-left: 4px solid #ff4444;
+    }
+
+    .notification.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .results-scroll {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .result-item {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .warning-message {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      color: #856404;
+    }
+
+    .success-message {
+      background: #d4edda;
+      border: 2px solid #28a745;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      color: #155724;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .input-group input {
+      flex: 1;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    .input-group input:focus {
+      border-color: #1e3c72;
+      outline: none;
+    }
+
+    /* Gift Code Section */
+    .gift-code-generator {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      border: 2px solid #e0e0e0;
+    }
+
+    .generate-btn {
+      background: #00a86b;
+      color: white;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      margin-top: 15px;
+    }
+
+    .generate-btn:hover {
+      background: #007a4f;
+    }
+
+    .generated-code-display {
+      background: #d4edda;
+      border: 2px solid #00a86b;
+      padding: 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: center;
+      display: none;
+    }
+
+    .code-display-text {
+      font-size: 24px;
+      font-weight: bold;
+      color: #00a86b;
+      margin: 10px 0;
+      letter-spacing: 2px;
+    }
+
+    /* Betting Area */
+    .bet-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      border-left: 4px solid #2196F3;
+    }
+
+    .bet-item-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .bet-item-detail {
+      font-size: 14px;
+      color: #666;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Page -->
+  <div class="admin-login" id="adminLogin">
+    <div class="login-container">
+      <div class="admin-logo">
+        <h1>🔒 Admin Panel</h1>
+        <p>GlowBet Management System</p>
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="adminPhone" placeholder="Enter admin phone" value="9934406008" />
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="adminPassword" placeholder="Enter password" value="admin123" />
+      </div>
+      <button class="login-btn" onclick="adminLogin()">Login</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="admin-dashboard" id="adminDashboard">
+    <div class="admin-header">
+      <h2>📊 GlowBet Admin Dashboard</h2>
+      <button class="logout-btn" onclick="adminLogout()">Logout</button>
+    </div>
+
+    <div class="admin-content">
+      <!-- Statistics -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Users</h3>
+          <div class="stat-value" id="totalUsers">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Total Balance</h3>
+          <div class="stat-value" id="totalBalance">₹0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Pending Deposits</h3>
+          <div class="stat-value" id="pendingDeposits">0</div>
+        </div>
+        <div class="stat-card">
+          <h3>Pending Withdrawals</h3>
+          <div class="stat-value" id="pendingWithdrawals">0</div>
+        </div>
+      </div>
+
+      <!-- 🎁 Gift Code Generator -->
+      <div class="section-card">
+        <div class="section-title">🎁 Gift Code Generator</div>
+        <div class="gift-code-generator">
+          <div class="form-group">
+            <label>Gift Code Name/ID</label>
+            <input type="text" id="giftCodeName" placeholder="e.g., WELCOME100" />
+          </div>
+          <div class="form-group">
+            <label>Gift Amount (₹)</label>
+            <input type="number" id="giftCodeAmount" placeholder="Enter amount" min="1" />
+          </div>
+          <button class="generate-btn" onclick="generateGiftCode()">Generate Gift Code</button>
+          <div class="generated-code-display" id="generatedCodeDisplay">
+            <p>✅ Gift Code Generated Successfully!</p>
+            <div class="code-display-text" id="displayGeneratedCode">XXXX-XXXX</div>
+            <p style="color: #666; margin-top: 10px;">Share this code with users</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 💰 Real-Time Betting Area (User Number Display) -->
+      <div class="section-card">
+        <div class="section-title">💰 Live Betting Activity (User Numbers)</div>
+        <div class="table-container">
+          <div id="liveBettingArea">
+            <p style="text-align: center; color: #999; padding: 20px;">Waiting for bets...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Game Control -->
+      <div class="section-card">
+        <div class="section-title">🎮 Game Control System</div>
+        <div class="game-control">
+          <div class="control-box">
+            <span class="control-label">Current Period</span>
+            <div class="control-value" id="adminCurrentPeriod">Loading...</div>
+          </div>
+          <div class="control-box">
+            <span class="control-label">Time Left</span>
+            <div class="control-value" id="adminTimeLeft">60s</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+          <h4 style="margin-bottom: 15px;">Game Mode Control</h4>
+          <div class="mode-toggle">
+            <button class="mode-btn active" id="autoModeBtn" onclick="setGameMode('auto')">Auto Mode</button>
+            <button class="mode-btn" id="manualModeBtn" onclick="setGameMode('manual')">Manual Mode</button>
+          </div>
+          
+          <div id="manualControl" class="hidden">
+            <div class="warning-message">
+              ⚠️ <strong>Manual Mode Active:</strong> Select a number below. It will be published automatically when the timer reaches 0 seconds.
+            </div>
+            <p style="margin: 15px 0; color: #666;">Select winning number for next round:</p>
+            <div class="number-grid">
+              <div class="number-btn" onclick="selectWinningNumber(0)">0</div>
+              <div class="number-btn" onclick="selectWinningNumber(1)">1</div>
+              <div class="number-btn" onclick="selectWinningNumber(2)">2</div>
+              <div class="number-btn" onclick="selectWinningNumber(3)">3</div>
+              <div class="number-btn" onclick="selectWinningNumber(4)">4</div>
+              <div class="number-btn" onclick="selectWinningNumber(5)">5</div>
+              <div class="number-btn" onclick="selectWinningNumber(6)">6</div>
+              <div class="number-btn" onclick="selectWinningNumber(7)">7</div>
+              <div class="number-btn" onclick="selectWinningNumber(8)">8</div>
+              <div class="number-btn" onclick="selectWinningNumber(9)">9</div>
+            </div>
+            <div id="selectedNumberDisplay" class="success-message" style="display: none;">
+              ✅ Selected Number: <strong><span id="selectedNumText">-</span></strong> - Will auto-publish at 0 seconds
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 30px;">
+          <h4 style="margin-bottom: 15px;">Recent Results (Last 20)</h4>
+          <div class="results-scroll" id="recentResults">Loading...</div>
+        </div>
+      </div>
+
+      <!-- 👥 User Management (WITH SCROLL) -->
+      <div class="section-card">
+        <div class="section-title">👥 User Management</div>
+        <div class="table-container">
+          <table class="data-table" id="usersTable">
+            <thead>
+              <tr>
+                <th style="width: 15%;">User Number</th>
+                <th style="width: 25%;">Phone Number</th>
+                <th style="width: 15%;">Status</th>
+                <th style="width: 45%;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTableBody">
+              <tr><td colspan="4" style="text-align: center; padding: 20px;">Loading users...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 💳 Deposit Requests (WITH SCROLL) -->
+      <div class="section-card">
+        <div class="section-title">💳 Deposit Requests</div>
+        <div class="table-container">
+          <table class="data-table" id="depositsTable">
+            <thead>
+              <tr>
+                <th style="width: 15%;">User Number</th>
+                <th style="width: 20%;">Phone Number</th>
+                <th style="width: 15%;">Amount</th>
+                <th style="width: 15%;">Status</th>
+                <th style="width: 35%;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="depositsTableBody">
+              <tr><td colspan="5" style="text-align: center; padding: 20px;">No deposits yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- 💰 Withdrawal Requests (WITH SCROLL) -->
+      <div class="section-card">
+        <div class="section-title">💰 Withdrawal Requests</div>
+        <div class="table-container">
+          <table class="data-table" id="withdrawalsTable">
+            <thead>
+              <tr>
+                <th style="width: 15%;">User Number</th>
+                <th style="width: 20%;">Phone Number</th>
+                <th style="width: 15%;">Amount</th>
+                <th style="width: 15%;">Status</th>
+                <th style="width: 35%;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="withdrawalsTableBody">
+              <tr><td colspan="5" style="text-align: center; padding: 20px;">No withdrawals yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- User Inspect Modal -->
+  <div class="modal" id="userInspectModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>👤 User Details</h3>
+        <span class="close-modal" onclick="closeUserModal()">&times;</span>
+      </div>
+      <div id="userModalContent"></div>
+      <div class="modal-actions" id="userModalActions"></div>
+    </div>
+  </div>
+
+  <!-- Deposit Inspect Modal -->
+  <div class="modal" id="depositInspectModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>💳 Deposit Details</h3>
+        <span class="close-modal" onclick="closeDepositModal()">&times;</span>
+      </div>
+      <div id="depositModalContent"></div>
+      <div class="modal-actions" id="depositModalActions"></div>
+    </div>
+  </div>
+
+  <!-- Withdrawal Inspect Modal -->
+  <div class="modal" id="withdrawalInspectModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>💰 Withdrawal Details</h3>
+        <span class="close-modal" onclick="closeWithdrawalModal()">&times;</span>
+      </div>
+      <div id="withdrawalModalContent"></div>
+      <div class="modal-actions" id="withdrawalModalActions"></div>
+    </div>
+  </div>
+
+  <!-- Notification -->
+  <div class="notification" id="notification">
+    <div id="notificationMessage"></div>
+  </div>
+
+  <script>
+    // Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCAHzv-VxvatsG9CFsCzbrNx9X6uaKRAa4",
+      authDomain: "glowbet-1b2ce.firebaseapp.com",
+      databaseURL: "https://glowbet-1b2ce-default-rtdb.firebaseio.com/",
+      projectId: "glowbet-1b2ce",
+      storageBucket: "glowbet-1b2ce.firebasestorage.app",
+      messagingSenderId: "333266810255",
+      appId: "1:333266810255:web:877010652ce46c8af687fa",
+      measurementId: "G-53QM377N5M"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    const ADMIN_CREDS = {
+      phone: '9934406008',
+      password: 'admin123'
+    };
+
+    let gameMode = 'auto';
+    let selectedNumber = null;
+    let adminCountdown = 60;
+    let adminCountdownInterval = null;
+    let currentAdminPeriod = null;
+    let resultPublished = false;
+    let userNumberMap = {}; // Map userId to user number
+
+    // 🆕 USER NUMBER MAPPING
+    function generateUserNumber(userId) {
+      if (!userNumberMap[userId]) {
+        const existingNumbers = Object.values(userNumberMap);
+        let newNumber = 1;
+        while (existingNumbers.includes(newNumber)) {
+          newNumber++;
+        }
+        userNumberMap[userId] = newNumber;
+        // Save to Firebase
+        database.ref('user_numbers/' + userId).set(newNumber);
+      }
+      return userNumberMap[userId];
+    }
+
+    function loadUserNumbers() {
+      database.ref('user_numbers').once('value').then(snapshot => {
+        userNumberMap = snapshot.val() || {};
+      });
+    }
+
+    // Period Generation
+    function generateCurrentPeriod() {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const minutesSinceStart = Math.floor((now.getHours() * 60 + now.getMinutes()));
+      const periodNumber = minutesSinceStart + 1;
+      return `${year}${month}${day}${String(periodNumber).padStart(4, '0')}`;
+    }
+
+    function getPeriodStartTime(period) {
+      const year = parseInt(period.substring(0, 4));
+      const month = parseInt(period.substring(4, 6)) - 1;
+      const day = parseInt(period.substring(6, 8));
+      const periodNum = parseInt(period.substring(8, 12));
+      
+      const date = new Date(year, month, day);
+      date.setHours(0, 0, 0, 0);
+      return date.getTime() + ((periodNum - 1) * 60 * 1000);
+    }
+
+    function getTimeLeftInPeriod() {
+      const now = Date.now();
+      const startTime = getPeriodStartTime(currentAdminPeriod);
+      const elapsed = now - startTime;
+      const remaining = 60000 - (elapsed % 60000);
+      return Math.floor(remaining / 1000);
+    }
+
+    // Login
+    function adminLogin() {
+      const phone = document.getElementById('adminPhone').value;
+      const password = document.getElementById('adminPassword').value;
+
+      if (phone === ADMIN_CREDS.phone && password === ADMIN_CREDS.password) {
+        document.getElementById('adminLogin').style.display = 'none';
+        document.getElementById('adminDashboard').style.display = 'block';
+        loadUserNumbers();
+        loadDashboardData();
+        startAdminTimer();
+        listenToLiveBets();
+        showNotification('success', 'Admin login successful!');
+      } else {
+        showNotification('error', 'Invalid credentials!');
+      }
+    }
+
+    function adminLogout() {
+      clearInterval(adminCountdownInterval);
+      document.getElementById('adminDashboard').style.display = 'none';
+      document.getElementById('adminLogin').style.display = 'flex';
+      document.getElementById('adminPhone').value = '';
+      document.getElementById('adminPassword').value = '';
+    }
+
+    // Load Dashboard
+    function loadDashboardData() {
+      loadStats();
+      loadUsers();
+      loadDeposits();
+      loadWithdrawals();
+      loadRecentResults();
+      updateGameControl();
+    }
+
+    function loadStats() {
+      database.ref('users').once('value').then(snapshot => {
+        const users = snapshot.val() || {};
+        const userCount = Object.keys(users).length;
+        let totalBalance = 0;
+        
+        Object.values(users).forEach(user => {
+          totalBalance += user.balance || 0;
+        });
+
+        document.getElementById('totalUsers').textContent = userCount;
+        document.getElementById('totalBalance').textContent = `₹${totalBalance.toFixed(2)}`;
+      });
+
+      database.ref('deposits').orderByChild('status').equalTo('pending').once('value').then(snapshot => {
+        const count = snapshot.numChildren();
+        document.getElementById('pendingDeposits').textContent = count;
+      });
+
+      database.ref('withdrawals').orderByChild('status').equalTo('pending').once('value').then(snapshot => {
+        const count = snapshot.numChildren();
+        document.getElementById('pendingWithdrawals').textContent = count;
+      });
+    }
+
+    // 🎁 GIFT CODE GENERATOR (FIXED)
+    function generateGiftCode() {
+      const codeName = document.getElementById('giftCodeName').value.trim();
+      const amount = parseFloat(document.getElementById('giftCodeAmount').value);
+
+      if (!codeName || !amount || amount <= 0) {
+        showNotification('error', 'Please fill all fields with valid data');
+        return;
+      }
+
+      const giftCode = codeName.toUpperCase().replace(/\s+/g, '_');
+      const giftData = {
+        code: giftCode,
+        amount: amount,
+        createdAt: Date.now(),
+        status: 'active',
+        usedBy: null
+      };
+
+      database.ref('gift_codes/' + giftCode).set(giftData)
+        .then(() => {
+          document.getElementById('displayGeneratedCode').textContent = giftCode;
+          document.getElementById('generatedCodeDisplay').style.display = 'block';
+          showNotification('success', `Gift code "${giftCode}" created with ₹${amount}`);
+          
+          document.getElementById('giftCodeName').value = '';
+          document.getElementById('giftCodeAmount').value = '';
+        })
+        .catch(error => {
+          console.error('Error creating gift code:', error);
+          showNotification('error', 'Failed to create gift code');
+        });
+    }
+
+    // 💰 LIVE BETTING AREA (USER NUMBER DISPLAY)
+    function listenToLiveBets() {
+      database.ref('bets').limitToLast(5).on('value', snapshot => {
+        const betsContainer = document.getElementById('liveBettingArea');
+        betsContainer.innerHTML = '';
+
+        if (!snapshot.exists()) {
+          betsContainer.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No bets yet</p>';
+          return;
+        }
+
+        const bets = [];
+        snapshot.forEach(childSnapshot => {
+          const roundBets = childSnapshot.val();
+          Object.values(roundBets).forEach(bet => {
+            if (bet.status === 'pending') {
+              bets.push(bet);
+            }
+          });
+        });
+
+        // Show top 5 most recent
+        bets.slice(-5).reverse().forEach(bet => {
+          const userNumber = generateUserNumber(bet.userId);
+          const betItem = document.createElement('div');
+          betItem.className = 'bet-item';
+          
+          const selectionDisplay = typeof bet.selection === 'number' ? 
+            `Number ${bet.selection}` : 
+            bet.selection.toUpperCase();
+
+          betItem.innerHTML = `
+            <div class="bet-item-header">
+              <span>👤 User #${userNumber}</span>
+              <span style="color: #00a86b; font-weight: bold;">₹${bet.amount}</span>
+            </div>
+            <div class="bet-item-detail">
+              <strong>Bet:</strong> ${selectionDisplay} | 
+              <strong>Round:</strong> ${bet.roundId.slice(-4)} |
+              <strong>Time:</strong> ${new Date(bet.timestamp).toLocaleTimeString()}
+            </div>
+          `;
+          betsContainer.appendChild(betItem);
+        });
+      });
+    }
+
+    // User Management
+    function loadUsers() {
+      database.ref('users').on('value', snapshot => {
+        const users = snapshot.val() || {};
+        const tbody = document.getElementById('usersTableBody');
+        tbody.innerHTML = '';
+
+        if (Object.keys(users).length === 0) {
+          tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 20px;">No users yet</td></tr>';
+          return;
+        }
+
+        Object.entries(users).forEach(([key, user]) => {
+          const row = document.createElement('tr');
+          const status = user.status || 'active';
+          const userNumber = generateUserNumber(user.userId);
+          
+          let statusBadgeClass = 'status-active';
+          let statusText = 'ACTIVE';
+          if (status === 'banned') {
+            statusBadgeClass = 'status-banned';
+            statusText = 'BANNED';
+          } else if (status === 'suspended') {
+            statusBadgeClass = 'status-suspended';
+            statusText = 'SUSPENDED';
+          }
+          
+          row.innerHTML = `
+            <td><strong>#${userNumber}</strong></td>
+            <td><strong>${user.phone}</strong></td>
+            <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
+            <td>
+              <button class="action-btn inspect-btn" onclick="inspectUser('${key}')">🔍 Inspect</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+    }
+
+    function inspectUser(userKey) {
+      database.ref('users/' + userKey).once('value').then(snapshot => {
+        const user = snapshot.val();
+        const regDate = user.registeredDate ? new Date(user.registeredDate).toLocaleString() : 'N/A';
+        const status = user.status || 'active';
+        const userNumber = generateUserNumber(user.userId);
+        
+        let suspendInfo = '';
+        if (status === 'suspended' && user.unsuspendAt) {
+          const timeLeft = user.unsuspendAt - Date.now();
+          const hoursLeft = Math.ceil(timeLeft / (1000 * 60 * 60));
+          suspendInfo = `<div class="detail-row">
+            <span class="detail-label">Suspend Expires In:</span>
+            <span class="detail-value" style="color: #ff9800; font-weight: bold;">${hoursLeft} hours</span>
+          </div>`;
+        }
+        
+        const modalContent = document.getElementById('userModalContent');
+        modalContent.innerHTML = `
+          <div class="detail-row">
+            <span class="detail-label">User Number:</span>
+            <span class="detail-value" style="font-weight: bold; color: #1e3c72;">#${userNumber}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">User ID:</span>
+            <span class="detail-value">${user.userId || 'N/A'}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Phone:</span>
+            <span class="detail-value">${user.phone}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Password:</span>
+            <span class="detail-value">${user.password}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Registered Date:</span>
+            <span class="detail-value">${regDate}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value" style="color: ${status === 'active' ? '#00a86b' : '#ff4444'}; font-weight: bold;">${status.toUpperCase()}</span>
+          </div>
+          ${suspendInfo}
+          <div class="detail-row">
+            <span class="detail-label">Balance:</span>
+            <span class="detail-value" style="color: #00a86b; font-weight: bold;">₹${(user.balance || 0).toFixed(2)}</span>
+          </div>
+          ${user.bankDetails ? `
+            <div class="detail-row">
+              <span class="detail-label">Account Number:</span>
+              <span class="detail-value">${user.bankDetails.accNumber}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">IFSC Code:</span>
+              <span class="detail-value">${user.bankDetails.ifsc}</span>
+            </div>
+          ` : '<p style="text-align: center; color: #999; margin-top: 10px;">No bank details saved</p>'}
+        `;
+
+        const modalActions = document.getElementById('userModalActions');
+        modalActions.innerHTML = `
+          <button class="modal-btn adjust-btn" onclick="adjustBalance('${userKey}')">💰 Adjust Balance</button>
+          ${status === 'active' ? `
+            <button class="modal-btn suspend-btn" onclick="suspendUserModal('${userKey}')">⏸️ Suspend</button>
+            <button class="modal-btn ban-btn" onclick="banUserModal('${userKey}')">🚫 Ban</button>
+          ` : `
+            <button class="modal-btn unban-btn" onclick="unbanUserModal('${userKey}')">✅ Unban/Unsuspend</button>
+          `}
+        `;
+        
+        document.getElementById('userInspectModal').style.display = 'flex';
+      });
+    }
+
+    function closeUserModal() {
+      document.getElementById('userInspectModal').style.display = 'none';
+    }
+
+    function banUserModal(userKey) {
+      if (!confirm('Are you sure you want to BAN this user permanently?')) {
+        return;
+      }
+      
+      database.ref('users/' + userKey + '/status').set('banned')
+        .then(() => {
+          showNotification('success', 'User has been banned');
+          closeUserModal();
+          loadStats();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('error', 'Failed to ban user');
+        });
+    }
+
+    function suspendUserModal(userKey) {
+      const hours = prompt('Suspend for how many hours?');
+      if (!hours || isNaN(hours) || hours <= 0) {
+        showNotification('error', 'Invalid number of hours');
+        return;
+      }
+      
+      const unsuspendAt = Date.now() + (parseInt(hours) * 60 * 60 * 1000);
+      
+      database.ref('users/' + userKey).update({
+        status: 'suspended',
+        unsuspendAt: unsuspendAt
+      })
+        .then(() => {
+          showNotification('success', `User suspended for ${hours} hours`);
+          closeUserModal();
+          loadStats();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('error', 'Failed to suspend user');
+        });
+    }
+
+    function unbanUserModal(userKey) {
+      if (!confirm('Are you sure you want to UNBAN/UNSUSPEND this user?')) {
+        return;
+      }
+      
+      database.ref('users/' + userKey).update({
+        status: 'active',
+        unsuspendAt: null
+      })
+        .then(() => {
+          showNotification('success', 'User has been unbanned/unsuspended');
+          closeUserModal();
+          loadStats();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          showNotification('error', 'Failed to unban user');
+        });
+    }
+
+    function adjustBalance(userKey) {
+      const amount = prompt('Enter amount to add (use negative for deduction):');
+      if (amount) {
+        const adjustAmount = parseFloat(amount);
+        database.ref('users/' + userKey).once('value').then(snapshot => {
+          const user = snapshot.val();
+          const newBalance = Math.max(0, (user.balance || 0) + adjustAmount);
+          database.ref('users/' + userKey + '/balance').set(newBalance)
+            .then(() => {
+              showNotification('success', `Balance adjusted by ₹${adjustAmount}`);
+              closeUserModal();
+              loadStats();
+            });
+        });
+      }
+    }
+
+    // Deposits (WITH USER NUMBER)
+    function loadDeposits() {
+      database.ref('deposits').on('value', snapshot => {
+        const deposits = snapshot.val() || {};
+        const tbody = document.getElementById('depositsTableBody');
+        tbody.innerHTML = '';
+
+        const depositArray = Object.entries(deposits).sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+        if (depositArray.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No deposits yet</td></tr>';
+          return;
+        }
+
+        depositArray.forEach(([key, deposit]) => {
+          const row = document.createElement('tr');
+          const statusClass = deposit.status === 'pending' ? 'status-pending' : 
+                             deposit.status === 'approved' ? 'status-approved' : 'status-rejected';
+          const userNumber = generateUserNumber(deposit.userId);
+          
+          row.innerHTML = `
+            <td><strong>#${userNumber}</strong></td>
+            <td><strong>${deposit.phone}</strong></td>
+            <td>₹${deposit.amount}</td>
+            <td><span class="status-badge ${statusClass}">${deposit.status.toUpperCase()}</span></td>
+            <td>
+              <button class="action-btn inspect-btn" onclick="inspectDeposit('${key}')">🔍 Inspect</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+    }
+
+    function inspectDeposit(depositKey) {
+      database.ref('deposits/' + depositKey).once('value').then(snapshot => {
+        const deposit = snapshot.val();
+        const date = new Date(deposit.timestamp).toLocaleString();
+        const userNumber = generateUserNumber(deposit.userId);
+        
+        const modalContent = document.getElementById('depositModalContent');
+        modalContent.innerHTML = `
+          <div class="detail-row">
+            <span class="detail-label">User Number:</span>
+            <span class="detail-value" style="font-weight: bold; color: #1e3c72;">#${userNumber}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Deposit ID:</span>
+            <span class="detail-value">${deposit.depositId}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">User ID:</span>
+            <span class="detail-value">${deposit.userId}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Phone:</span>
+            <span class="detail-value">${deposit.phone}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount:</span>
+            <span class="detail-value" style="color: #00a86b; font-weight: bold;">₹${deposit.amount}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">UTR Number:</span>
+            <span class="detail-value">${deposit.utr}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Date & Time:</span>
+            <span class="detail-value">${date}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value" style="color: ${deposit.status === 'approved' ? '#00a86b' : deposit.status === 'rejected' ? '#ff4444' : '#ff9800'}">
+              ${deposit.status.toUpperCase()}
+            </span>
+          </div>
+        `;
+
+        const modalActions = document.getElementById('depositModalActions');
+        if (deposit.status === 'pending') {
+          modalActions.innerHTML = `
+            <button class="modal-btn approve-btn" onclick="approveDepositModal('${depositKey}')">✅ Approve</button>
+            <button class="modal-btn reject-btn" onclick="rejectDepositModal('${depositKey}')">❌ Reject</button>
+          `;
+        } else {
+          modalActions.innerHTML = '<p style="text-align: center; color: #999;">No actions available</p>';
+        }
+        
+        document.getElementById('depositInspectModal').style.display = 'flex';
+      });
+    }
+
+    function closeDepositModal() {
+      document.getElementById('depositInspectModal').style.display = 'none';
+    }
+
+    function approveDepositModal(depositKey) {
+      database.ref('deposits/' + depositKey).once('value').then(snapshot => {
+        const deposit = snapshot.val();
+        
+        database.ref('deposits/' + depositKey + '/status').set('approved');
+        
+        const cleanPhone = deposit.phone.replace(/[^0-9]/g, '');
+        database.ref('users/' + cleanPhone).once('value').then(userSnapshot => {
+          const user = userSnapshot.val();
+          const newBalance = (user.balance || 0) + deposit.amount;
+          database.ref('users/' + cleanPhone + '/balance').set(newBalance);
+          
+          showNotification('success', `Deposit approved: ₹${deposit.amount}`);
+          closeDepositModal();
+          loadStats();
+        });
+      });
+    }
+
+    function rejectDepositModal(depositKey) {
+      if (!confirm('Are you sure you want to REJECT this deposit?')) return;
+      
+      database.ref('deposits/' + depositKey + '/status').set('rejected')
+        .then(() => {
+          showNotification('success', 'Deposit rejected');
+          closeDepositModal();
+        });
+    }
+
+    // Withdrawals (WITH USER NUMBER)
+    function loadWithdrawals() {
+      database.ref('withdrawals').on('value', snapshot => {
+        const withdrawals = snapshot.val() || {};
+        const tbody = document.getElementById('withdrawalsTableBody');
+        tbody.innerHTML = '';
+
+        const withdrawalArray = Object.entries(withdrawals).sort((a, b) => b[1].timestamp - a[1].timestamp);
+
+        if (withdrawalArray.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No withdrawals yet</td></tr>';
+          return;
+        }
+
+        withdrawalArray.forEach(([key, withdrawal]) => {
+          const row = document.createElement('tr');
+          const statusClass = withdrawal.status === 'pending' ? 'status-pending' : 
+                             withdrawal.status === 'approved' ? 'status-approved' : 'status-rejected';
+          const userNumber = generateUserNumber(withdrawal.userId);
+          
+          row.innerHTML = `
+            <td><strong>#${userNumber}</strong></td>
+            <td><strong>${withdrawal.phone}</strong></td>
+            <td>₹${withdrawal.amount}</td>
+            <td><span class="status-badge ${statusClass}">${withdrawal.status.toUpperCase()}</span></td>
+            <td>
+              <button class="action-btn inspect-btn" onclick="inspectWithdrawal('${key}')">🔍 Inspect</button>
+            </td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+    }
+
+    function inspectWithdrawal(withdrawalKey) {
+      database.ref('withdrawals/' + withdrawalKey).once('value').then(snapshot => {
+        const withdrawal = snapshot.val();
+        const date = new Date(withdrawal.timestamp).toLocaleString();
+        const userNumber = generateUserNumber(withdrawal.userId);
+        
+        const modalContent = document.getElementById('withdrawalModalContent');
+        modalContent.innerHTML = `
+          <div class="detail-row">
+            <span class="detail-label">User Number:</span>
+            <span class="detail-value" style="font-weight: bold; color: #1e3c72;">#${userNumber}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Withdrawal ID:</span>
+            <span class="detail-value">${withdrawal.withdrawalId}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">User ID:</span>
+            <span class="detail-value">${withdrawal.userId}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Phone:</span>
+            <span class="detail-value">${withdrawal.phone}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Amount:</span>
+            <span class="detail-value" style="color: #ff4444; font-weight: bold;">₹${withdrawal.amount}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Account Number:</span>
+            <span class="detail-value">${withdrawal.bankDetails.accNumber}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">IFSC Code:</span>
+            <span class="detail-value">${withdrawal.bankDetails.ifsc}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Date & Time:</span>
+            <span class="detail-value">${date}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-value" style="color: ${withdrawal.status === 'approved' ? '#00a86b' : withdrawal.status === 'rejected' ? '#ff4444' : '#ff9800'}">
+              ${withdrawal.status.toUpperCase()}
+            </span>
+          </div>
+        `;
+
+        const modalActions = document.getElementById('withdrawalModalActions');
+        if (withdrawal.status === 'pending') {
+          modalActions.innerHTML = `
+            <button class="modal-btn approve-btn" onclick="approveWithdrawalModal('${withdrawalKey}')">✅ Approve</button>
+            <button class="modal-btn reject-btn" onclick="rejectWithdrawalModal('${withdrawalKey}')">❌ Reject</button>
+          `;
+        } else {
+          modalActions.innerHTML = '<p style="text-align: center; color: #999;">No actions available</p>';
+        }
+        
+        document.getElementById('withdrawalInspectModal').style.display = 'flex';
+      });
+    }
+
+    function closeWithdrawalModal() {
+      document.getElementById('withdrawalInspectModal').style.display = 'none';
+    }
+
+    function approveWithdrawalModal(withdrawalKey) {
+      database.ref('withdrawals/' + withdrawalKey).once('value').then(snapshot => {
+        const withdrawal = snapshot.val();
+        database.ref('withdrawals/' + withdrawalKey + '/status').set('approved');
+        showNotification('success', `Withdrawal approved: ₹${withdrawal.amount}`);
+        closeWithdrawalModal();
+        loadStats();
+      });
+    }
+
+    function rejectWithdrawalModal(withdrawalKey) {
+      if (!confirm('REJECT and REFUND this withdrawal?')) return;
+      
+      database.ref('withdrawals/' + withdrawalKey).once('value').then(snapshot => {
+        const withdrawal = snapshot.val();
+        
+        const cleanPhone = withdrawal.phone.replace(/[^0-9]/g, '');
+        database.ref('users/' + cleanPhone).once('value').then(userSnapshot => {
+          const user = userSnapshot.val();
+          const newBalance = (user.balance || 0) + withdrawal.amount;
+          database.ref('users/' + cleanPhone + '/balance').set(newBalance);
+          
+          database.ref('withdrawals/' + withdrawalKey + '/status').set('rejected');
+          showNotification('success', 'Withdrawal rejected and amount refunded');
+          closeWithdrawalModal();
+          loadStats();
+        });
+      });
+    }
+
+    function loadRecentResults() {
+      database.ref('results').orderByChild('timestamp').limitToLast(20).on('value', snapshot => {
+        const results = [];
+        snapshot.forEach(child => {
+          results.unshift(child.val());
+        });
+
+        const container = document.getElementById('recentResults');
+        container.innerHTML = '';
+
+        if (results.length === 0) {
+          container.innerHTML = '<p style="text-align: center; color: #999;">No results yet</p>';
+          return;
+        }
+
+        results.forEach(result => {
+          const item = document.createElement('div');
+          item.className = 'result-item';
+          const date = new Date(result.timestamp).toLocaleString();
+          item.innerHTML = `
+            <div>
+              <strong>Period ${result.period.slice(-4)}</strong> - 
+              Number: ${result.number}, Size: ${result.size}, Colors: ${result.colors.join(', ')}
+            </div>
+            <div style="color: #999; font-size: 12px;">${date}</div>
+          `;
+          container.appendChild(item);
+        });
+      });
+    }
+
+    // Game Control
+    function updateGameControl() {
+      currentAdminPeriod = generateCurrentPeriod();
+      document.getElementById('adminCurrentPeriod').textContent = currentAdminPeriod.slice(-4);
+    }
+
+    function startAdminTimer() {
+      clearInterval(adminCountdownInterval);
+      
+      currentAdminPeriod = generateCurrentPeriod();
+      adminCountdown = getTimeLeftInPeriod();
+      resultPublished = false;
+      
+      updateGameControl();
+      updateAdminTimer();
+      
+      console.log('[ADMIN] 🎮 Round:', currentAdminPeriod, '| Time left:', adminCountdown);
+      
+      adminCountdownInterval = setInterval(() => {
+        adminCountdown = getTimeLeftInPeriod();
+        
+        const newPeriod = generateCurrentPeriod();
+        if (newPeriod !== currentAdminPeriod) {
+          console.log('[ADMIN] 🔄 Period changed');
+          clearInterval(adminCountdownInterval);
+          waitForAdminResult(currentAdminPeriod);
+          return;
+        }
+        
+        updateAdminTimer();
+        
+        if (adminCountdown <= 0 && !resultPublished) {
+          resultPublished = true;
+          clearInterval(adminCountdownInterval);
+          
+          database.ref('results/' + currentAdminPeriod).once('value').then(snapshot => {
+            if (!snapshot.exists()) {
+              if (gameMode === 'manual' && selectedNumber !== null) {
+                publishManualResult();
+              } else {
+                autoGenerateResult();
+              }
+            }
+            
+            setTimeout(() => {
+              selectedNumber = null;
+              updateSelectedNumberDisplay();
+              startAdminTimer();
+            }, 3000);
+          });
+        }
+      }, 1000);
+    }
+
+    function waitForAdminResult(roundId) {
+      let attempts = 0;
+      const checkResult = setInterval(() => {
+        attempts++;
+        
+        database.ref('results/' + roundId).once('value').then(snapshot => {
+          if (snapshot.exists() || attempts >= 10) {
+            clearInterval(checkResult);
+            startAdminTimer();
+          }
+        });
+      }, 1000);
+    }
+
+    function updateAdminTimer() {
+      document.getElementById('adminTimeLeft').textContent = adminCountdown + 's';
+    }
+
+    function setGameMode(mode) {
+      gameMode = mode;
+      
+      document.getElementById('autoModeBtn').classList.remove('active');
+      document.getElementById('manualModeBtn').classList.remove('active');
+      
+      if (mode === 'auto') {
+        document.getElementById('autoModeBtn').classList.add('active');
+        document.getElementById('manualControl').classList.add('hidden');
+        showNotification('success', 'AUTO MODE: Random results');
+      } else {
+        document.getElementById('manualModeBtn').classList.add('active');
+        document.getElementById('manualControl').classList.remove('hidden');
+        showNotification('success', 'MANUAL MODE: Select number');
+      }
+      
+      selectedNumber = null;
+      updateSelectedNumberDisplay();
+    }
+
+    function selectWinningNumber(number) {
+      selectedNumber = number;
+      
+      document.querySelectorAll('.number-btn').forEach(btn => {
+        btn.classList.remove('selected');
+      });
+      event.target.classList.add('selected');
+      
+      updateSelectedNumberDisplay();
+      showNotification('success', `Number ${number} selected`);
+    }
+
+    function updateSelectedNumberDisplay() {
+      const display = document.getElementById('selectedNumberDisplay');
+      const numText = document.getElementById('selectedNumText');
+      
+      if (selectedNumber !== null) {
+        display.style.display = 'block';
+        numText.textContent = selectedNumber;
+      } else {
+        display.style.display = 'none';
+        document.querySelectorAll('.number-btn').forEach(btn => {
+          btn.classList.remove('selected');
+        });
+      }
+    }
+
+    function publishManualResult() {
+      if (selectedNumber === null) {
+        autoGenerateResult();
+        return;
+      }
+
+      const colors = getColorForNumber(selectedNumber);
+      const size = selectedNumber >= 5 ? 'big' : 'small';
+      
+      const result = {
+        period: currentAdminPeriod,
+        number: selectedNumber,
+        size: size,
+        colors: colors,
+        timestamp: Date.now()
+      };
+      
+      console.log('[ADMIN] 📤 Manual result:', result);
+      
+      database.ref('results/' + currentAdminPeriod).set(result)
+        .then(() => {
+          showNotification('success', `✅ Manual result: ${selectedNumber}`);
+        })
+        .catch(error => {
+          console.error('[ADMIN] ❌ Error:', error);
+        });
+    }
+
+    function autoGenerateResult() {
+      const winningNumber = Math.floor(Math.random() * 10);
+      const colors = getColorForNumber(winningNumber);
+      const size = winningNumber >= 5 ? 'big' : 'small';
+      
+      const result = {
+        period: currentAdminPeriod,
+        number: winningNumber,
+        size: size,
+        colors: colors,
+        timestamp: Date.now()
+      };
+      
+      console.log('[ADMIN] 🎲 Auto result:', result);
+      
+      database.ref('results/' + currentAdminPeriod).set(result)
+        .then(() => {
+          showNotification('success', `🎲 Auto result: ${winningNumber}`);
+        });
+    }
+
+    function getColorForNumber(number) {
+      if (number === 0) return ['red', 'violet'];
+      if (number === 5) return ['green', 'violet'];
+      if ([1, 3, 7, 9].includes(number)) return ['green'];
+      return ['red'];
+    }
+
+    function showNotification(type, message) {
+      const notification = document.getElementById('notification');
+      notification.className = `notification ${type} show`;
+      document.getElementById('notificationMessage').textContent = message;
+      
+      setTimeout(() => {
+        notification.classList.remove('show');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
