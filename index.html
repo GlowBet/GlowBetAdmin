@@ -324,6 +324,11 @@
       color: white;
     }
 
+    .delete-btn {
+      background: #ff4444;
+      color: white;
+    }
+
     .action-btn:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
@@ -619,6 +624,31 @@
       letter-spacing: 2px;
     }
 
+    /* Gift Code List */
+    .gift-code-list {
+      margin-top: 20px;
+    }
+
+    .gift-code-item {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid #00a86b;
+    }
+
+    .gift-code-info {
+      flex: 1;
+    }
+
+    .gift-code-actions {
+      display: flex;
+      gap: 10px;
+    }
+
     /* Betting Area */
     .bet-item {
       background: #f8f9fa;
@@ -648,7 +678,7 @@
   <div class="admin-login" id="adminLogin">
     <div class="login-container">
       <div class="admin-logo">
-        <h1>🔒 Admin Panel</h1>
+        <h1>🔐 Admin Panel</h1>
         <p>GlowBet Management System</p>
       </div>
       <div class="form-group">
@@ -689,11 +719,15 @@
           <h3>Pending Withdrawals</h3>
           <div class="stat-value" id="pendingWithdrawals">0</div>
         </div>
+        <div class="stat-card">
+          <h3>Active Gift Codes</h3>
+          <div class="stat-value" id="activeGiftCodes">0</div>
+        </div>
       </div>
 
       <!-- 🎁 Gift Code Generator -->
       <div class="section-card">
-        <div class="section-title">🎁 Gift Code Generator</div>
+        <div class="section-title">🎁 Gift Code Management</div>
         <div class="gift-code-generator">
           <div class="form-group">
             <label>Gift Code Name/ID</label>
@@ -703,11 +737,23 @@
             <label>Gift Amount (₹)</label>
             <input type="number" id="giftCodeAmount" placeholder="Enter amount" min="1" />
           </div>
+          <div class="form-group">
+            <label>Max Users (0 = unlimited)</label>
+            <input type="number" id="giftCodeMaxUsers" placeholder="Max users" min="0" value="0" />
+          </div>
           <button class="generate-btn" onclick="generateGiftCode()">Generate Gift Code</button>
           <div class="generated-code-display" id="generatedCodeDisplay">
             <p>✅ Gift Code Generated Successfully!</p>
             <div class="code-display-text" id="displayGeneratedCode">XXXX-XXXX</div>
             <p style="color: #666; margin-top: 10px;">Share this code with users</p>
+          </div>
+        </div>
+
+        <!-- Gift Code List -->
+        <div class="gift-code-list">
+          <h4 style="margin: 20px 0 10px;">Active Gift Codes</h4>
+          <div id="giftCodeList">
+            <p style="text-align: center; color: #999; padding: 20px;">Loading gift codes...</p>
           </div>
         </div>
       </div>
@@ -745,7 +791,7 @@
           
           <div id="manualControl" class="hidden">
             <div class="warning-message">
-              ⚠️ <strong>Manual Mode Active:</strong> Select a number below. It will be published automatically when the timer reaches 0 seconds.
+              ⚠️ <strong>Manual Mode Active:</strong> Select a number below. It will be published immediately when the timer reaches 0 seconds.
             </div>
             <p style="margin: 15px 0; color: #666;">Select winning number for next round:</p>
             <div class="number-grid">
@@ -990,6 +1036,7 @@
       loadDeposits();
       loadWithdrawals();
       loadRecentResults();
+      loadGiftCodes();
       updateGameControl();
     }
 
@@ -1016,12 +1063,18 @@
         const count = snapshot.numChildren();
         document.getElementById('pendingWithdrawals').textContent = count;
       });
+
+      database.ref('gift_codes').orderByChild('status').equalTo('active').once('value').then(snapshot => {
+        const count = snapshot.numChildren();
+        document.getElementById('activeGiftCodes').textContent = count;
+      });
     }
 
     // ⚠️ FIX: GIFT CODE GENERATOR (FIXED STRUCTURE)
     function generateGiftCode() {
       const codeName = document.getElementById('giftCodeName').value.trim();
       const amount = parseFloat(document.getElementById('giftCodeAmount').value);
+      const maxUsers = parseInt(document.getElementById('giftCodeMaxUsers').value);
 
       if (!codeName || !amount || amount <= 0) {
         showNotification('error', 'Please fill all fields with valid data');
@@ -1032,6 +1085,8 @@
       const giftData = {
         code: giftCode,
         amount: amount,
+        maxUsers: maxUsers,
+        usedCount: 0,
         createdAt: Date.now(),
         status: 'active',
         usedBy: null,
@@ -1046,11 +1101,81 @@
           
           document.getElementById('giftCodeName').value = '';
           document.getElementById('giftCodeAmount').value = '';
+          document.getElementById('giftCodeMaxUsers').value = '0';
+          
+          loadGiftCodes();
         })
         .catch(error => {
           console.error('Error creating gift code:', error);
           showNotification('error', 'Failed to create gift code');
         });
+    }
+
+    // ⚠️ FIX: GIFT CODE LIST MANAGEMENT
+    function loadGiftCodes() {
+      const giftCodeList = document.getElementById('giftCodeList');
+      giftCodeList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Loading gift codes...</p>';
+
+      database.ref('gift_codes').orderByChild('createdAt').once('value')
+        .then(snapshot => {
+          giftCodeList.innerHTML = '';
+          
+          if (!snapshot.exists()) {
+            giftCodeList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No gift codes created yet</p>';
+            return;
+          }
+
+          const giftCodes = [];
+          snapshot.forEach(childSnapshot => {
+            giftCodes.push(childSnapshot.val());
+          });
+
+          giftCodes.sort((a, b) => b.createdAt - a.createdAt);
+
+          giftCodes.forEach(gift => {
+            const item = document.createElement('div');
+            item.className = 'gift-code-item';
+            
+            const statusText = gift.status === 'active' ? 'Active' : 'Used';
+            const statusColor = gift.status === 'active' ? '#00a86b' : '#999';
+            
+            item.innerHTML = `
+              <div class="gift-code-info">
+                <div style="font-weight: bold; font-size: 16px;">${gift.code}</div>
+                <div style="color: #666; margin-top: 5px;">
+                  Amount: ₹${gift.amount} | 
+                  Used: ${gift.usedCount || 0}${gift.maxUsers > 0 ? ` / ${gift.maxUsers}` : ''} | 
+                  Status: <span style="color: ${statusColor}">${statusText}</span>
+                </div>
+              </div>
+              <div class="gift-code-actions">
+                <button class="action-btn delete-btn" onclick="deleteGiftCode('${gift.code}')">Delete</button>
+              </div>
+            `;
+            
+            giftCodeList.appendChild(item);
+          });
+        })
+        .catch(error => {
+          console.error('Error loading gift codes:', error);
+          giftCodeList.innerHTML = '<p style="text-align: center; color: #ff4444; padding: 20px;">Failed to load gift codes</p>';
+        });
+    }
+
+    // ⚠️ FIX: DELETE GIFT CODE FUNCTION
+    function deleteGiftCode(code) {
+      if (confirm(`Are you sure you want to delete gift code "${code}"?`)) {
+        database.ref('gift_codes/' + code).remove()
+          .then(() => {
+            showNotification('success', `Gift code "${code}" deleted successfully!`);
+            loadGiftCodes();
+            loadStats();
+          })
+          .catch(error => {
+            console.error('Error deleting gift code:', error);
+            showNotification('error', 'Failed to delete gift code');
+          });
+      }
     }
 
     // 💰 LIVE BETTING AREA (USER NUMBER DISPLAY)
@@ -1323,6 +1448,7 @@
             <td><span class="status-badge ${statusClass}">${deposit.status.toUpperCase()}</span></td>
             <td>
               <button class="action-btn inspect-btn" onclick="inspectDeposit('${key}')">🔍 Inspect</button>
+              <button class="action-btn delete-btn" onclick="deleteDepositAdmin('${key}')">🗑️ Delete</button>
             </td>
           `;
           tbody.appendChild(row);
@@ -1421,6 +1547,21 @@
         });
     }
 
+    // ⚠️ FIX: DELETE DEPOSIT FROM ADMIN
+    function deleteDepositAdmin(depositKey) {
+      if (confirm("Are you sure you want to delete this deposit record?")) {
+        database.ref('deposits/' + depositKey).remove()
+          .then(() => {
+            showNotification('success', "Deposit record deleted successfully!");
+            loadDeposits();
+          })
+          .catch(error => {
+            console.error("Error deleting deposit:", error);
+            showNotification('error', "Failed to delete deposit record");
+          });
+      }
+    }
+
     // Withdrawals (WITH USER NUMBER)
     function loadWithdrawals() {
       database.ref('withdrawals').on('value', snapshot => {
@@ -1448,6 +1589,7 @@
             <td><span class="status-badge ${statusClass}">${withdrawal.status.toUpperCase()}</span></td>
             <td>
               <button class="action-btn inspect-btn" onclick="inspectWithdrawal('${key}')">🔍 Inspect</button>
+              <button class="action-btn delete-btn" onclick="deleteWithdrawalAdmin('${key}')">🗑️ Delete</button>
             </td>
           `;
           tbody.appendChild(row);
@@ -1551,6 +1693,21 @@
       });
     }
 
+    // ⚠️ FIX: DELETE WITHDRAWAL FROM ADMIN
+    function deleteWithdrawalAdmin(withdrawalKey) {
+      if (confirm("Are you sure you want to delete this withdrawal record?")) {
+        database.ref('withdrawals/' + withdrawalKey).remove()
+          .then(() => {
+            showNotification('success', "Withdrawal record deleted successfully!");
+            loadWithdrawals();
+          })
+          .catch(error => {
+            console.error("Error deleting withdrawal:", error);
+            showNotification('error', "Failed to delete withdrawal record");
+          });
+      }
+    }
+
     function loadRecentResults() {
       database.ref('results').orderByChild('timestamp').limitToLast(20).on('value', snapshot => {
         const results = [];
@@ -1630,7 +1787,7 @@
               selectedNumber = null;
               updateSelectedNumberDisplay();
               startAdminTimer();
-            }, 3000);
+            }, 1000); // Reduced from 3000 to 1000 for faster next round
           });
         }
       }, 1000);
@@ -1642,12 +1799,12 @@
         attempts++;
         
         database.ref('results/' + roundId).once('value').then(snapshot => {
-          if (snapshot.exists() || attempts >= 10) {
+          if (snapshot.exists() || attempts >= 3) { // Reduced from 10 to 3
             clearInterval(checkResult);
             startAdminTimer();
           }
         });
-      }, 1000);
+      }, 500); // Reduced from 1000 to 500
     }
 
     function updateAdminTimer() {
@@ -1715,7 +1872,8 @@
         number: selectedNumber,
         size: size,
         colors: colors,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        source: 'manual'
       };
       
       console.log('[ADMIN] 📤 Manual result:', result);
@@ -1739,7 +1897,8 @@
         number: winningNumber,
         size: size,
         colors: colors,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        source: 'auto'
       };
       
       console.log('[ADMIN] 🎲 Auto result:', result);
