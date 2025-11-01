@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,18 +10,36 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    :root {
+      --primary: #2c3e50;
+      --secondary: #3498db;
+      --success: #2ecc71;
+      --danger: #e74c3c;
+      --warning: #f39c12;
+      --info: #17a2b8;
+      --light: #ecf0f1;
+      --dark: #2c3e50;
+      --gray: #95a5a6;
+      --sidebar-width: 250px;
+      --header-height: 70px;
     }
 
     body {
       background: linear-gradient(135deg, #1e3c72, #2a5298);
       color: #333;
       min-height: 100vh;
+      overflow-x: hidden;
     }
 
     /* Login Page */
@@ -30,6 +49,7 @@
       align-items: center;
       min-height: 100vh;
       padding: 20px;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
     }
 
     .login-container {
@@ -39,6 +59,18 @@
       box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
       max-width: 400px;
       width: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, var(--secondary), var(--success));
     }
 
     .admin-logo {
@@ -47,13 +79,17 @@
     }
 
     .admin-logo h1 {
-      color: #1e3c72;
+      color: var(--primary);
       font-size: 32px;
       margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
     }
 
     .admin-logo p {
-      color: #666;
+      color: var(--gray);
       font-size: 14px;
     }
 
@@ -65,7 +101,7 @@
       display: block;
       margin-bottom: 8px;
       font-weight: 600;
-      color: #333;
+      color: var(--dark);
     }
 
     .form-group input {
@@ -78,14 +114,15 @@
     }
 
     .form-group input:focus {
-      border-color: #1e3c72;
+      border-color: var(--secondary);
       outline: none;
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
     }
 
     .login-btn {
       width: 100%;
       padding: 14px;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      background: linear-gradient(135deg, var(--secondary), var(--info));
       color: white;
       border: none;
       border-radius: 8px;
@@ -93,14 +130,18 @@
       font-weight: 600;
       cursor: pointer;
       transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .login-btn:hover {
       transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(30, 60, 114, 0.4);
+      box-shadow: 0 8px 20px rgba(52, 152, 219, 0.4);
     }
 
-    /* Dashboard */
+    /* Dashboard Layout */
     .admin-dashboard {
       display: none;
       min-height: 100vh;
@@ -108,34 +149,150 @@
 
     .admin-header {
       background: white;
-      padding: 20px 30px;
+      padding: 0 30px;
       box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      height: var(--header-height);
+      position: fixed;
+      top: 0;
+      left: var(--sidebar-width);
+      right: 0;
+      z-index: 100;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .toggle-sidebar {
+      background: none;
+      border: none;
+      font-size: 20px;
+      color: var(--primary);
+      cursor: pointer;
+      display: none;
     }
 
     .admin-header h2 {
-      color: #1e3c72;
+      color: var(--primary);
       font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--dark);
+      font-weight: 500;
+    }
+
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--secondary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
     }
 
     .logout-btn {
-      background: #ff4444;
+      background: var(--danger);
       color: white;
       border: none;
       padding: 10px 20px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+    }
+
+    /* Sidebar */
+    .admin-sidebar {
+      width: var(--sidebar-width);
+      background: var(--primary);
+      color: white;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      overflow-y: auto;
+      transition: all 0.3s;
+      z-index: 101;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      text-align: center;
+    }
+
+    .sidebar-header h3 {
+      color: white;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .sidebar-menu {
+      padding: 20px 0;
+    }
+
+    .menu-item {
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--light);
+      text-decoration: none;
+      transition: all 0.3s;
+      border-left: 3px solid transparent;
+    }
+
+    .menu-item:hover, .menu-item.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      border-left-color: var(--secondary);
+    }
+
+    .menu-item i {
+      width: 20px;
+      text-align: center;
     }
 
     .admin-content {
+      margin-left: var(--sidebar-width);
+      margin-top: var(--header-height);
       padding: 30px;
-      max-width: 1400px;
-      margin: 0 auto;
+      transition: all 0.3s;
     }
 
+    /* Stats Cards */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -149,6 +306,18 @@
       border-radius: 12px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
       transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background: var(--secondary);
     }
 
     .stat-card:hover {
@@ -156,18 +325,44 @@
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
+    .stat-card.primary::before { background: var(--primary); }
+    .stat-card.success::before { background: var(--success); }
+    .stat-card.warning::before { background: var(--warning); }
+    .stat-card.danger::before { background: var(--danger); }
+    .stat-card.info::before { background: var(--info); }
+
     .stat-card h3 {
-      color: #666;
+      color: var(--gray);
       font-size: 14px;
       margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .stat-card .stat-value {
-      color: #1e3c72;
+      color: var(--dark);
       font-size: 32px;
       font-weight: bold;
     }
 
+    .stat-card .stat-change {
+      font-size: 12px;
+      margin-top: 5px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat-card .stat-change.positive {
+      color: var(--success);
+    }
+
+    .stat-card .stat-change.negative {
+      color: var(--danger);
+    }
+
+    /* Section Cards */
     .section-card {
       background: white;
       padding: 25px;
@@ -179,12 +374,16 @@
     .section-title {
       font-size: 20px;
       font-weight: 600;
-      color: #1e3c72;
+      color: var(--primary);
       margin-bottom: 20px;
       padding-bottom: 10px;
       border-bottom: 2px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
+    /* Game Control */
     .game-control {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -202,11 +401,12 @@
       font-weight: 600;
       margin-bottom: 10px;
       display: block;
+      color: var(--dark);
     }
 
     .control-value {
       font-size: 24px;
-      color: #1e3c72;
+      color: var(--primary);
       font-weight: bold;
       margin-bottom: 10px;
     }
@@ -231,13 +431,13 @@
 
     .number-btn:hover {
       transform: scale(1.05);
-      border-color: #1e3c72;
+      border-color: var(--secondary);
     }
 
     .number-btn.selected {
-      background: #1e3c72;
+      background: var(--secondary);
       color: white;
-      border-color: #1e3c72;
+      border-color: var(--secondary);
     }
 
     .mode-toggle {
@@ -255,12 +455,16 @@
       font-weight: 600;
       background: white;
       transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .mode-btn.active {
-      background: #00a86b;
+      background: var(--success);
       color: white;
-      border-color: #00a86b;
+      border-color: var(--success);
     }
 
     /* SCROLLABLE TABLE CONTAINER */
@@ -287,7 +491,7 @@
     .data-table th {
       background: #f8f9fa;
       font-weight: 600;
-      color: #333;
+      color: var(--dark);
       position: sticky;
       top: 0;
       z-index: 10;
@@ -307,25 +511,28 @@
       margin-right: 5px;
       margin-bottom: 5px;
       transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
     }
 
     .inspect-btn {
-      background: #2196F3;
+      background: var(--info);
       color: white;
     }
 
     .approve-btn {
-      background: #00a86b;
+      background: var(--success);
       color: white;
     }
 
     .reject-btn {
-      background: #ff4444;
+      background: var(--danger);
       color: white;
     }
 
     .delete-btn {
-      background: #ff4444;
+      background: var(--danger);
       color: white;
     }
 
@@ -395,6 +602,7 @@
       max-height: 90vh;
       overflow-y: auto;
       margin: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
     }
 
     .modal-header {
@@ -407,19 +615,24 @@
     }
 
     .modal-header h3 {
-      color: #1e3c72;
+      color: var(--primary);
       font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .close-modal {
       font-size: 28px;
       font-weight: bold;
       cursor: pointer;
-      color: #999;
+      color: var(--gray);
+      transition: all 0.3s;
     }
 
     .close-modal:hover {
-      color: #333;
+      color: var(--dark);
+      transform: rotate(90deg);
     }
 
     .detail-row {
@@ -435,12 +648,15 @@
 
     .detail-label {
       font-weight: 600;
-      color: #666;
+      color: var(--gray);
     }
 
     .detail-value {
-      color: #333;
+      color: var(--dark);
       font-weight: 500;
+      text-align: right;
+      max-width: 60%;
+      word-wrap: break-word;
     }
 
     .modal-actions {
@@ -460,6 +676,10 @@
       font-weight: 600;
       font-size: 14px;
       transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
     }
 
     .modal-btn:hover {
@@ -468,22 +688,22 @@
     }
 
     .ban-btn {
-      background: #ff4444;
+      background: var(--danger);
       color: white;
     }
 
     .suspend-btn {
-      background: #ff9800;
+      background: var(--warning);
       color: white;
     }
 
     .unban-btn {
-      background: #00a86b;
+      background: var(--success);
       color: white;
     }
 
     .adjust-btn {
-      background: #2196F3;
+      background: var(--info);
       color: white;
     }
 
@@ -499,14 +719,23 @@
       z-index: 10000;
       display: none;
       min-width: 300px;
+      border-left: 4px solid var(--success);
     }
 
     .notification.success {
-      border-left: 4px solid #00a86b;
+      border-left-color: var(--success);
     }
 
     .notification.error {
-      border-left: 4px solid #ff4444;
+      border-left-color: var(--danger);
+    }
+
+    .notification.warning {
+      border-left-color: var(--warning);
+    }
+
+    .notification.info {
+      border-left-color: var(--info);
     }
 
     .notification.show {
@@ -546,20 +775,26 @@
 
     .warning-message {
       background: #fff3cd;
-      border: 2px solid #ffc107;
+      border: 2px solid var(--warning);
       padding: 15px;
       border-radius: 8px;
       margin-top: 15px;
       color: #856404;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .success-message {
       background: #d4edda;
-      border: 2px solid #28a745;
+      border: 2px solid var(--success);
       padding: 15px;
       border-radius: 8px;
       margin-top: 15px;
       color: #155724;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .input-group {
@@ -577,7 +812,7 @@
     }
 
     .input-group input:focus {
-      border-color: #1e3c72;
+      border-color: var(--secondary);
       outline: none;
     }
 
@@ -591,7 +826,7 @@
     }
 
     .generate-btn {
-      background: #00a86b;
+      background: var(--success);
       color: white;
       padding: 12px 25px;
       border: none;
@@ -600,15 +835,20 @@
       font-weight: 600;
       font-size: 14px;
       margin-top: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s;
     }
 
     .generate-btn:hover {
-      background: #007a4f;
+      background: #27ae60;
+      transform: translateY(-2px);
     }
 
     .generated-code-display {
       background: #d4edda;
-      border: 2px solid #00a86b;
+      border: 2px solid var(--success);
       padding: 20px;
       border-radius: 8px;
       margin-top: 15px;
@@ -619,7 +859,7 @@
     .code-display-text {
       font-size: 24px;
       font-weight: bold;
-      color: #00a86b;
+      color: var(--success);
       margin: 10px 0;
       letter-spacing: 2px;
     }
@@ -637,7 +877,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-left: 4px solid #00a86b;
+      border-left: 4px solid var(--success);
     }
 
     .gift-code-info {
@@ -655,7 +895,7 @@
       padding: 15px;
       border-radius: 8px;
       margin-bottom: 10px;
-      border-left: 4px solid #2196F3;
+      border-left: 4px solid var(--info);
     }
 
     .bet-item-header {
@@ -667,8 +907,49 @@
 
     .bet-item-detail {
       font-size: 14px;
-      color: #666;
+      color: var(--gray);
       margin-top: 5px;
+    }
+
+    /* Responsive */
+    @media (max-width: 992px) {
+      .admin-sidebar {
+        transform: translateX(-100%);
+      }
+      
+      .admin-sidebar.active {
+        transform: translateX(0);
+      }
+      
+      .admin-content {
+        margin-left: 0;
+      }
+      
+      .admin-header {
+        left: 0;
+      }
+      
+      .toggle-sidebar {
+        display: block;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .game-control {
+        grid-template-columns: 1fr;
+      }
+      
+      .modal-actions {
+        flex-direction: column;
+      }
+      
+      .modal-btn {
+        width: 100%;
+      }
     }
   </style>
 </head>
@@ -678,208 +959,335 @@
   <div class="admin-login" id="adminLogin">
     <div class="login-container">
       <div class="admin-logo">
-        <h1>🔐 Admin Panel</h1>
+        <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
         <p>GlowBet Management System</p>
       </div>
       <div class="form-group">
-        <label>Phone Number</label>
+        <label><i class="fas fa-phone"></i> Phone Number</label>
         <input type="tel" id="adminPhone" placeholder="Enter admin phone" value="9934406008" />
       </div>
       <div class="form-group">
-        <label>Password</label>
+        <label><i class="fas fa-lock"></i> Password</label>
         <input type="password" id="adminPassword" placeholder="Enter password" value="admin123" />
       </div>
-      <button class="login-btn" onclick="adminLogin()">Login</button>
+      <button class="login-btn" onclick="adminLogin()"><i class="fas fa-sign-in-alt"></i> Login</button>
     </div>
   </div>
 
   <!-- Dashboard -->
   <div class="admin-dashboard" id="adminDashboard">
-    <div class="admin-header">
-      <h2>📊 GlowBet Admin Dashboard</h2>
-      <button class="logout-btn" onclick="adminLogout()">Logout</button>
+    <!-- Sidebar -->
+    <div class="admin-sidebar" id="adminSidebar">
+      <div class="sidebar-header">
+        <h3><i class="fas fa-crown"></i> GlowBet</h3>
+      </div>
+      <div class="sidebar-menu">
+        <a href="#" class="menu-item active" data-section="dashboard">
+          <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="#" class="menu-item" data-section="gift-codes">
+          <i class="fas fa-gift"></i> Gift Codes
+        </a>
+        <a href="#" class="menu-item" data-section="betting">
+          <i class="fas fa-coins"></i> Live Betting
+        </a>
+        <a href="#" class="menu-item" data-section="game-control">
+          <i class="fas fa-gamepad"></i> Game Control
+        </a>
+        <a href="#" class="menu-item" data-section="users">
+          <i class="fas fa-users"></i> User Management
+        </a>
+        <a href="#" class="menu-item" data-section="deposits">
+          <i class="fas fa-money-bill-wave"></i> Deposits
+        </a>
+        <a href="#" class="menu-item" data-section="withdrawals">
+          <i class="fas fa-wallet"></i> Withdrawals
+        </a>
+      </div>
     </div>
 
-    <div class="admin-content">
-      <!-- Statistics -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <h3>Total Users</h3>
-          <div class="stat-value" id="totalUsers">0</div>
-        </div>
-        <div class="stat-card">
-          <h3>Total Balance</h3>
-          <div class="stat-value" id="totalBalance">₹0</div>
-        </div>
-        <div class="stat-card">
-          <h3>Pending Deposits</h3>
-          <div class="stat-value" id="pendingDeposits">0</div>
-        </div>
-        <div class="stat-card">
-          <h3>Pending Withdrawals</h3>
-          <div class="stat-value" id="pendingWithdrawals">0</div>
-        </div>
-        <div class="stat-card">
-          <h3>Active Gift Codes</h3>
-          <div class="stat-value" id="activeGiftCodes">0</div>
-        </div>
+    <!-- Header -->
+    <div class="admin-header">
+      <div class="header-left">
+        <button class="toggle-sidebar" id="toggleSidebar">
+          <i class="fas fa-bars"></i>
+        </button>
+        <h2><i class="fas fa-tachometer-alt"></i> Admin Dashboard</h2>
       </div>
-
-      <!-- 🎁 Gift Code Generator -->
-      <div class="section-card">
-        <div class="section-title">🎁 Gift Code Management</div>
-        <div class="gift-code-generator">
-          <div class="form-group">
-            <label>Gift Code Name/ID</label>
-            <input type="text" id="giftCodeName" placeholder="e.g., WELCOME100" />
-          </div>
-          <div class="form-group">
-            <label>Gift Amount (₹)</label>
-            <input type="number" id="giftCodeAmount" placeholder="Enter amount" min="1" />
-          </div>
-          <div class="form-group">
-            <label>Max Users (0 = unlimited)</label>
-            <input type="number" id="giftCodeMaxUsers" placeholder="Max users" min="0" value="0" />
-          </div>
-          <button class="generate-btn" onclick="generateGiftCode()">Generate Gift Code</button>
-          <div class="generated-code-display" id="generatedCodeDisplay">
-            <p>✅ Gift Code Generated Successfully!</p>
-            <div class="code-display-text" id="displayGeneratedCode">XXXX-XXXX</div>
-            <p style="color: #666; margin-top: 10px;">Share this code with users</p>
-          </div>
+      <div class="header-right">
+        <div class="user-info">
+          <div class="user-avatar">A</div>
+          <span>Admin</span>
         </div>
-
-        <!-- Gift Code List -->
-        <div class="gift-code-list">
-          <h4 style="margin: 20px 0 10px;">Active Gift Codes</h4>
-          <div id="giftCodeList">
-            <p style="text-align: center; color: #999; padding: 20px;">Loading gift codes...</p>
-          </div>
-        </div>
+        <button class="logout-btn" onclick="adminLogout()">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
       </div>
+    </div>
 
-      <!-- 💰 Real-Time Betting Area (User Number Display) -->
-      <div class="section-card">
-        <div class="section-title">💰 Live Betting Activity (User Numbers)</div>
-        <div class="table-container">
-          <div id="liveBettingArea">
-            <p style="text-align: center; color: #999; padding: 20px;">Waiting for bets...</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Control -->
-      <div class="section-card">
-        <div class="section-title">🎮 Game Control System</div>
-        <div class="game-control">
-          <div class="control-box">
-            <span class="control-label">Current Period</span>
-            <div class="control-value" id="adminCurrentPeriod">Loading...</div>
-          </div>
-          <div class="control-box">
-            <span class="control-label">Time Left</span>
-            <div class="control-value" id="adminTimeLeft">60s</div>
-          </div>
-        </div>
-
-        <div style="margin-top: 30px;">
-          <h4 style="margin-bottom: 15px;">Game Mode Control</h4>
-          <div class="mode-toggle">
-            <button class="mode-btn active" id="autoModeBtn" onclick="setGameMode('auto')">Auto Mode</button>
-            <button class="mode-btn" id="manualModeBtn" onclick="setGameMode('manual')">Manual Mode</button>
-          </div>
-          
-          <div id="manualControl" class="hidden">
-            <div class="warning-message">
-              ⚠️ <strong>Manual Mode Active:</strong> Select a number below. It will be published immediately when the timer reaches 0 seconds.
+    <!-- Content -->
+    <div class="admin-content" id="adminContent">
+      <!-- Dashboard Section -->
+      <div class="content-section" id="dashboard-section">
+        <!-- Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card primary">
+            <h3><i class="fas fa-users"></i> Total Users</h3>
+            <div class="stat-value" id="totalUsers">0</div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i> 12% from last week
             </div>
-            <p style="margin: 15px 0; color: #666;">Select winning number for next round:</p>
-            <div class="number-grid">
-              <div class="number-btn" onclick="selectWinningNumber(0)">0</div>
-              <div class="number-btn" onclick="selectWinningNumber(1)">1</div>
-              <div class="number-btn" onclick="selectWinningNumber(2)">2</div>
-              <div class="number-btn" onclick="selectWinningNumber(3)">3</div>
-              <div class="number-btn" onclick="selectWinningNumber(4)">4</div>
-              <div class="number-btn" onclick="selectWinningNumber(5)">5</div>
-              <div class="number-btn" onclick="selectWinningNumber(6)">6</div>
-              <div class="number-btn" onclick="selectWinningNumber(7)">7</div>
-              <div class="number-btn" onclick="selectWinningNumber(8)">8</div>
-              <div class="number-btn" onclick="selectWinningNumber(9)">9</div>
+          </div>
+          <div class="stat-card success">
+            <h3><i class="fas fa-wallet"></i> Total Balance</h3>
+            <div class="stat-value" id="totalBalance">₹0</div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i> 8% from yesterday
             </div>
-            <div id="selectedNumberDisplay" class="success-message" style="display: none;">
-              ✅ Selected Number: <strong><span id="selectedNumText">-</span></strong> - Will auto-publish at 0 seconds
+          </div>
+          <div class="stat-card warning">
+            <h3><i class="fas fa-money-bill-wave"></i> Pending Deposits</h3>
+            <div class="stat-value" id="pendingDeposits">0</div>
+            <div class="stat-change negative">
+              <i class="fas fa-exclamation-circle"></i> Needs attention
+            </div>
+          </div>
+          <div class="stat-card danger">
+            <h3><i class="fas fa-wallet"></i> Pending Withdrawals</h3>
+            <div class="stat-value" id="pendingWithdrawals">0</div>
+            <div class="stat-change negative">
+              <i class="fas fa-exclamation-circle"></i> Needs attention
+            </div>
+          </div>
+          <div class="stat-card info">
+            <h3><i class="fas fa-gift"></i> Active Gift Codes</h3>
+            <div class="stat-value" id="activeGiftCodes">0</div>
+            <div class="stat-change positive">
+              <i class="fas fa-arrow-up"></i> 5 new today
             </div>
           </div>
         </div>
 
-        <div style="margin-top: 30px;">
-          <h4 style="margin-bottom: 15px;">Recent Results (Last 20)</h4>
-          <div class="results-scroll" id="recentResults">Loading...</div>
+        <!-- Quick Actions -->
+        <div class="section-card">
+          <div class="section-title"><i class="fas fa-bolt"></i> Quick Actions</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <button class="action-btn inspect-btn" onclick="showSection('gift-codes')">
+              <i class="fas fa-gift"></i> Create Gift Code
+            </button>
+            <button class="action-btn approve-btn" onclick="showSection('withdrawals')">
+              <i class="fas fa-wallet"></i> Process Withdrawals
+            </button>
+            <button class="action-btn inspect-btn" onclick="showSection('deposits')">
+              <i class="fas fa-money-bill-wave"></i> Review Deposits
+            </button>
+            <button class="action-btn inspect-btn" onclick="showSection('game-control')">
+              <i class="fas fa-gamepad"></i> Game Settings
+            </button>
+          </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="section-card">
+          <div class="section-title"><i class="fas fa-history"></i> Recent Activity</div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>User</th>
+                  <th>Action</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+              <tbody id="recentActivityBody">
+                <tr>
+                  <td colspan="4" style="text-align: center; padding: 20px;">Loading activity...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <!-- 👥 User Management (WITH SCROLL) -->
-      <div class="section-card">
-        <div class="section-title">👥 User Management</div>
-        <div class="table-container">
-          <table class="data-table" id="usersTable">
-            <thead>
-              <tr>
-                <th style="width: 15%;">User Number</th>
-                <th style="width: 25%;">Phone Number</th>
-                <th style="width: 15%;">Status</th>
-                <th style="width: 45%;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody">
-              <tr><td colspan="4" style="text-align: center; padding: 20px;">Loading users...</td></tr>
-            </tbody>
-          </table>
+      <!-- Gift Codes Section -->
+      <div class="content-section hidden" id="gift-codes-section">
+        <div class="section-card">
+          <div class="section-title"><i class="fas fa-gift"></i> Gift Code Management</div>
+          <div class="gift-code-generator">
+            <div class="form-group">
+              <label>Gift Code Name/ID</label>
+              <input type="text" id="giftCodeName" placeholder="e.g., WELCOME100" />
+            </div>
+            <div class="form-group">
+              <label>Gift Amount (₹)</label>
+              <input type="number" id="giftCodeAmount" placeholder="Enter amount" min="1" />
+            </div>
+            <div class="form-group">
+              <label>Max Users (0 = unlimited)</label>
+              <input type="number" id="giftCodeMaxUsers" placeholder="Max users" min="0" value="0" />
+            </div>
+            <button class="generate-btn" onclick="generateGiftCode()">
+              <i class="fas fa-plus-circle"></i> Generate Gift Code
+            </button>
+            <div class="generated-code-display" id="generatedCodeDisplay">
+              <p><i class="fas fa-check-circle"></i> Gift Code Generated Successfully!</p>
+              <div class="code-display-text" id="displayGeneratedCode">XXXX-XXXX</div>
+              <p style="color: #666; margin-top: 10px;">Share this code with users</p>
+            </div>
+          </div>
+
+          <!-- Gift Code List -->
+          <div class="gift-code-list">
+            <h4 style="margin: 20px 0 10px; color: var(--dark);">Active Gift Codes</h4>
+            <div id="giftCodeList">
+              <p style="text-align: center; color: #999; padding: 20px;">Loading gift codes...</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 💳 Deposit Requests (WITH SCROLL) -->
-      <div class="section-card">
-        <div class="section-title">💳 Deposit Requests</div>
-        <div class="table-container">
-          <table class="data-table" id="depositsTable">
-            <thead>
-              <tr>
-                <th style="width: 15%;">User Number</th>
-                <th style="width: 20%;">Phone Number</th>
-                <th style="width: 15%;">Amount</th>
-                <th style="width: 15%;">Status</th>
-                <th style="width: 35%;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="depositsTableBody">
-              <tr><td colspan="5" style="text-align: center; padding: 20px;">No deposits yet</td></tr>
-            </tbody>
-          </table>
+      <!-- Betting Section -->
+      <div class="content-section hidden" id="betting-section">
+        <div class="section-card">
+          <div class="section-title"><i class="fas fa-coins"></i> Live Betting Activity</div>
+          <div class="table-container">
+            <div id="liveBettingArea">
+              <p style="text-align: center; color: #999; padding: 20px;">Waiting for bets...</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- 💰 Withdrawal Requests (WITH SCROLL) -->
-      <div class="section-card">
-        <div class="section-title">💰 Withdrawal Requests</div>
-        <div class="table-container">
-          <table class="data-table" id="withdrawalsTable">
-            <thead>
-              <tr>
-                <th style="width: 15%;">User Number</th>
-                <th style="width: 20%;">Phone Number</th>
-                <th style="width: 15%;">Amount</th>
-                <th style="width: 15%;">Status</th>
-                <th style="width: 35%;">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="withdrawalsTableBody">
-              <tr><td colspan="5" style="text-align: center; padding: 20px;">No withdrawals yet</td></tr>
-            </tbody>
-          </table>
+      <!-- Game Control Section -->
+      <div class="content-section hidden" id="game-control-section">
+        <div class="section-card">
+          <div class="section-title"><i class="fas fa-gamepad"></i> Game Control System</div>
+          <div class="game-control">
+            <div class="control-box">
+              <span class="control-label">Current Period</span>
+              <div class="control-value" id="adminCurrentPeriod">Loading...</div>
+            </div>
+            <div class="control-box">
+              <span class="control-label">Time Left</span>
+              <div class="control-value" id="adminTimeLeft">60s</div>
+            </div>
+          </div>
+
+          <div style="margin-top: 30px;">
+            <h4 style="margin-bottom: 15px; color: var(--dark);">Game Mode Control</h4>
+            <div class="mode-toggle">
+              <button class="mode-btn active" id="autoModeBtn" onclick="setGameMode('auto')">
+                <i class="fas fa-robot"></i> Auto Mode
+              </button>
+              <button class="mode-btn" id="manualModeBtn" onclick="setGameMode('manual')">
+                <i class="fas fa-user"></i> Manual Mode
+              </button>
+            </div>
+            
+            <div id="manualControl" class="hidden">
+              <div class="warning-message">
+                <i class="fas fa-exclamation-triangle"></i> 
+                <div>
+                  <strong>Manual Mode Active:</strong> Select a number below. It will be published immediately when the timer reaches 0 seconds.
+                </div>
+              </div>
+              <p style="margin: 15px 0; color: var(--gray);">Select winning number for next round:</p>
+              <div class="number-grid">
+                <div class="number-btn" onclick="selectWinningNumber(0)">0</div>
+                <div class="number-btn" onclick="selectWinningNumber(1)">1</div>
+                <div class="number-btn" onclick="selectWinningNumber(2)">2</div>
+                <div class="number-btn" onclick="selectWinningNumber(3)">3</div>
+                <div class="number-btn" onclick="selectWinningNumber(4)">4</div>
+                <div class="number-btn" onclick="selectWinningNumber(5)">5</div>
+                <div class="number-btn" onclick="selectWinningNumber(6)">6</div>
+                <div class="number-btn" onclick="selectWinningNumber(7)">7</div>
+                <div class="number-btn" onclick="selectWinningNumber(8)">8</div>
+                <div class="number-btn" onclick="selectWinningNumber(9)">9</div>
+              </div>
+              <div id="selectedNumberDisplay" class="success-message" style="display: none;">
+                <i class="fas fa-check-circle"></i>
+                <div>
+                  Selected Number: <strong><span id="selectedNumText">-</span></strong> - Will auto-publish at 0 seconds
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 30px;">
+            <h4 style="margin-bottom: 15px; color: var(--dark);">Recent Results (Last 20)</h4>
+            <div class="results-scroll" id="recentResults">Loading...</div>
+          </div>
         </div>
       </div>
 
+      <!-- User Management Section -->
+      <div class="content-section hidden" id="users-section">
+        <div class="section-card">
+          <div class="section-title"><i class="fas fa-users"></i> User Management</div>
+          <div class="table-container">
+            <table class="data-table" id="usersTable">
+              <thead>
+                <tr>
+                  <th style="width: 15%;">User Number</th>
+                  <th style="width: 25%;">Phone Number</th>
+                  <th style="width: 15%;">Status</th>
+                  <th style="width: 45%;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="4" style="text-align: center; padding: 20px;">Loading users...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Deposits Section -->
+      <div class="content-section hidden" id="deposits-section">
+        <div class="section-card">
+          <div class="section-title"><i class="fas fa-money-bill-wave"></i> Deposit Requests</div>
+          <div class="table-container">
+            <table class="data-table" id="depositsTable">
+              <thead>
+                <tr>
+                  <th style="width: 15%;">User Number</th>
+                  <th style="width: 20%;">Phone Number</th>
+                  <th style="width: 15%;">Amount</th>
+                  <th style="width: 15%;">Status</th>
+                  <th style="width: 35%;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="depositsTableBody">
+                <tr><td colspan="5" style="text-align: center; padding: 20px;">No deposits yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Withdrawals Section -->
+      <div class="content-section hidden" id="withdrawals-section">
+        <div class="section-card">
+          <div class="section-title"><i class="fas fa-wallet"></i> Withdrawal Requests</div>
+          <div class="table-container">
+            <table class="data-table" id="withdrawalsTable">
+              <thead>
+                <tr>
+                  <th style="width: 15%;">User Number</th>
+                  <th style="width: 20%;">Phone Number</th>
+                  <th style="width: 15%;">Amount</th>
+                  <th style="width: 15%;">Status</th>
+                  <th style="width: 35%;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="withdrawalsTableBody">
+                <tr><td colspan="5" style="text-align: center; padding: 20px;">No withdrawals yet</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -887,7 +1295,7 @@
   <div class="modal" id="userInspectModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>👤 User Details</h3>
+        <h3><i class="fas fa-user"></i> User Details</h3>
         <span class="close-modal" onclick="closeUserModal()">&times;</span>
       </div>
       <div id="userModalContent"></div>
@@ -899,7 +1307,7 @@
   <div class="modal" id="depositInspectModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>💳 Deposit Details</h3>
+        <h3><i class="fas fa-money-bill-wave"></i> Deposit Details</h3>
         <span class="close-modal" onclick="closeDepositModal()">&times;</span>
       </div>
       <div id="depositModalContent"></div>
@@ -911,7 +1319,7 @@
   <div class="modal" id="withdrawalInspectModal">
     <div class="modal-content">
       <div class="modal-header">
-        <h3>💰 Withdrawal Details</h3>
+        <h3><i class="fas fa-wallet"></i> Withdrawal Details</h3>
         <span class="close-modal" onclick="closeWithdrawalModal()">&times;</span>
       </div>
       <div id="withdrawalModalContent"></div>
@@ -1029,6 +1437,44 @@
       document.getElementById('adminPassword').value = '';
     }
 
+    // Sidebar Toggle
+    document.getElementById('toggleSidebar').addEventListener('click', function() {
+      document.getElementById('adminSidebar').classList.toggle('active');
+    });
+
+    // Section Navigation
+    function showSection(sectionName) {
+      // Hide all sections
+      document.querySelectorAll('.content-section').forEach(section => {
+        section.classList.add('hidden');
+      });
+      
+      // Show selected section
+      document.getElementById(sectionName + '-section').classList.remove('hidden');
+      
+      // Update active menu item
+      document.querySelectorAll('.menu-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.getAttribute('data-section') === sectionName) {
+          item.classList.add('active');
+        }
+      });
+    }
+
+    // Add event listeners to menu items
+    document.querySelectorAll('.menu-item').forEach(item => {
+      item.addEventListener('click', function(e) {
+        e.preventDefault();
+        const section = this.getAttribute('data-section');
+        showSection(section);
+        
+        // Close sidebar on mobile after selection
+        if (window.innerWidth <= 992) {
+          document.getElementById('adminSidebar').classList.remove('active');
+        }
+      });
+    });
+
     // Load Dashboard
     function loadDashboardData() {
       loadStats();
@@ -1038,6 +1484,7 @@
       loadRecentResults();
       loadGiftCodes();
       updateGameControl();
+      loadRecentActivity();
     }
 
     function loadStats() {
@@ -1067,6 +1514,62 @@
       database.ref('gift_codes').orderByChild('status').equalTo('active').once('value').then(snapshot => {
         const count = snapshot.numChildren();
         document.getElementById('activeGiftCodes').textContent = count;
+      });
+    }
+
+    // Recent Activity
+    function loadRecentActivity() {
+      const activityBody = document.getElementById('recentActivityBody');
+      activityBody.innerHTML = '';
+      
+      // Get recent deposits
+      database.ref('deposits').orderByChild('timestamp').limitToLast(5).once('value').then(snapshot => {
+        const deposits = [];
+        snapshot.forEach(child => {
+          deposits.push(child.val());
+        });
+        
+        deposits.sort((a, b) => b.timestamp - a.timestamp);
+        
+        deposits.forEach(deposit => {
+          const userNumber = generateUserNumber(deposit.userId);
+          const row = document.createElement('tr');
+          const time = new Date(deposit.timestamp).toLocaleTimeString();
+          
+          row.innerHTML = `
+            <td>${time}</td>
+            <td>User #${userNumber}</td>
+            <td>Deposit Request</td>
+            <td>₹${deposit.amount} - ${deposit.status}</td>
+          `;
+          
+          activityBody.appendChild(row);
+        });
+      });
+      
+      // Get recent withdrawals
+      database.ref('withdrawals').orderByChild('timestamp').limitToLast(5).once('value').then(snapshot => {
+        const withdrawals = [];
+        snapshot.forEach(child => {
+          withdrawals.push(child.val());
+        });
+        
+        withdrawals.sort((a, b) => b.timestamp - a.timestamp);
+        
+        withdrawals.forEach(withdrawal => {
+          const userNumber = generateUserNumber(withdrawal.userId);
+          const row = document.createElement('tr');
+          const time = new Date(withdrawal.timestamp).toLocaleTimeString();
+          
+          row.innerHTML = `
+            <td>${time}</td>
+            <td>User #${userNumber}</td>
+            <td>Withdrawal Request</td>
+            <td>₹${withdrawal.amount} - ${withdrawal.status}</td>
+          `;
+          
+          activityBody.appendChild(row);
+        });
       });
     }
 
@@ -1149,7 +1652,9 @@
                 </div>
               </div>
               <div class="gift-code-actions">
-                <button class="action-btn delete-btn" onclick="deleteGiftCode('${gift.code}')">Delete</button>
+                <button class="action-btn delete-btn" onclick="deleteGiftCode('${gift.code}')">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
               </div>
             `;
             
@@ -1210,7 +1715,7 @@
 
           betItem.innerHTML = `
             <div class="bet-item-header">
-              <span>👤 User #${userNumber}</span>
+              <span><i class="fas fa-user"></i> User #${userNumber}</span>
               <span style="color: #00a86b; font-weight: bold;">₹${bet.amount}</span>
             </div>
             <div class="bet-item-detail">
@@ -1256,7 +1761,9 @@
             <td><strong>${user.phone}</strong></td>
             <td><span class="status-badge ${statusBadgeClass}">${statusText}</span></td>
             <td>
-              <button class="action-btn inspect-btn" onclick="inspectUser('${key}')">🔍 Inspect</button>
+              <button class="action-btn inspect-btn" onclick="inspectUser('${key}')">
+                <i class="fas fa-search"></i> Inspect
+              </button>
             </td>
           `;
           tbody.appendChild(row);
@@ -1326,12 +1833,20 @@
 
         const modalActions = document.getElementById('userModalActions');
         modalActions.innerHTML = `
-          <button class="modal-btn adjust-btn" onclick="adjustBalance('${userKey}')">💰 Adjust Balance</button>
+          <button class="modal-btn adjust-btn" onclick="adjustBalance('${userKey}')">
+            <i class="fas fa-wallet"></i> Adjust Balance
+          </button>
           ${status === 'active' ? `
-            <button class="modal-btn suspend-btn" onclick="suspendUserModal('${userKey}')">⏸️ Suspend</button>
-            <button class="modal-btn ban-btn" onclick="banUserModal('${userKey}')">🚫 Ban</button>
+            <button class="modal-btn suspend-btn" onclick="suspendUserModal('${userKey}')">
+              <i class="fas fa-pause"></i> Suspend
+            </button>
+            <button class="modal-btn ban-btn" onclick="banUserModal('${userKey}')">
+              <i class="fas fa-ban"></i> Ban
+            </button>
           ` : `
-            <button class="modal-btn unban-btn" onclick="unbanUserModal('${userKey}')">✅ Unban/Unsuspend</button>
+            <button class="modal-btn unban-btn" onclick="unbanUserModal('${userKey}')">
+              <i class="fas fa-check"></i> Unban/Unsuspend
+            </button>
           `}
         `;
         
@@ -1447,8 +1962,12 @@
             <td>₹${deposit.amount}</td>
             <td><span class="status-badge ${statusClass}">${deposit.status.toUpperCase()}</span></td>
             <td>
-              <button class="action-btn inspect-btn" onclick="inspectDeposit('${key}')">🔍 Inspect</button>
-              <button class="action-btn delete-btn" onclick="deleteDepositAdmin('${key}')">🗑️ Delete</button>
+              <button class="action-btn inspect-btn" onclick="inspectDeposit('${key}')">
+                <i class="fas fa-search"></i> Inspect
+              </button>
+              <button class="action-btn delete-btn" onclick="deleteDepositAdmin('${key}')">
+                <i class="fas fa-trash"></i> Delete
+              </button>
             </td>
           `;
           tbody.appendChild(row);
@@ -1503,8 +2022,12 @@
         const modalActions = document.getElementById('depositModalActions');
         if (deposit.status === 'pending') {
           modalActions.innerHTML = `
-            <button class="modal-btn approve-btn" onclick="approveDepositModal('${depositKey}')">✅ Approve</button>
-            <button class="modal-btn reject-btn" onclick="rejectDepositModal('${depositKey}')">❌ Reject</button>
+            <button class="modal-btn approve-btn" onclick="approveDepositModal('${depositKey}')">
+              <i class="fas fa-check"></i> Approve
+            </button>
+            <button class="modal-btn reject-btn" onclick="rejectDepositModal('${depositKey}')">
+              <i class="fas fa-times"></i> Reject
+            </button>
           `;
         } else {
           modalActions.innerHTML = '<p style="text-align: center; color: #999;">No actions available</p>';
@@ -1562,7 +2085,7 @@
       }
     }
 
-    // Withdrawals (WITH USER NUMBER)
+    // ✅ FIXED: Withdrawals (WITH FULL INSPECT MODAL DETAILS)
     function loadWithdrawals() {
       database.ref('withdrawals').on('value', snapshot => {
         const withdrawals = snapshot.val() || {};
@@ -1588,8 +2111,12 @@
             <td>₹${withdrawal.amount}</td>
             <td><span class="status-badge ${statusClass}">${withdrawal.status.toUpperCase()}</span></td>
             <td>
-              <button class="action-btn inspect-btn" onclick="inspectWithdrawal('${key}')">🔍 Inspect</button>
-              <button class="action-btn delete-btn" onclick="deleteWithdrawalAdmin('${key}')">🗑️ Delete</button>
+              <button class="action-btn inspect-btn" onclick="inspectWithdrawal('${key}')">
+                <i class="fas fa-search"></i> Inspect
+              </button>
+              <button class="action-btn delete-btn" onclick="deleteWithdrawalAdmin('${key}')">
+                <i class="fas fa-trash"></i> Delete
+              </button>
             </td>
           `;
           tbody.appendChild(row);
@@ -1597,11 +2124,38 @@
       });
     }
 
+    // ✅ FIXED: inspectWithdrawal - NOW SHOWS ALL DETAILS INCLUDING BANK INFO
     function inspectWithdrawal(withdrawalKey) {
+      console.log('🔍 Inspecting withdrawal:', withdrawalKey);
+      
       database.ref('withdrawals/' + withdrawalKey).once('value').then(snapshot => {
         const withdrawal = snapshot.val();
+        
+        console.log('📦 Withdrawal data:', withdrawal);
+        
+        if (!withdrawal) {
+          showNotification('error', 'Withdrawal not found');
+          return;
+        }
+        
         const date = new Date(withdrawal.timestamp).toLocaleString();
         const userNumber = generateUserNumber(withdrawal.userId);
+        
+        // ✅ FIXED: Properly handle bankDetails
+        let bankDetailsHTML = '<p style="text-align: center; color: #999; margin-top: 10px;">No bank details available</p>';
+        
+        if (withdrawal.bankDetails) {
+          bankDetailsHTML = `
+            <div class="detail-row">
+              <span class="detail-label">Account Number:</span>
+              <span class="detail-value">${withdrawal.bankDetails.accNumber || 'N/A'}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">IFSC Code:</span>
+              <span class="detail-value">${withdrawal.bankDetails.ifsc || 'N/A'}</span>
+            </div>
+          `;
+        }
         
         const modalContent = document.getElementById('withdrawalModalContent');
         modalContent.innerHTML = `
@@ -1611,36 +2165,29 @@
           </div>
           <div class="detail-row">
             <span class="detail-label">Withdrawal ID:</span>
-            <span class="detail-value">${withdrawal.withdrawalId}</span>
+            <span class="detail-value">${withdrawal.withdrawalId || 'N/A'}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">User ID:</span>
-            <span class="detail-value">${withdrawal.userId}</span>
+            <span class="detail-value">${withdrawal.userId || 'N/A'}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Phone:</span>
-            <span class="detail-value">${withdrawal.phone}</span>
+            <span class="detail-value">${withdrawal.phone || 'N/A'}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Amount:</span>
-            <span class="detail-value" style="color: #ff4444; font-weight: bold;">₹${withdrawal.amount}</span>
+            <span class="detail-value" style="color: #ff4444; font-weight: bold;">₹${withdrawal.amount || 0}</span>
           </div>
-          <div class="detail-row">
-            <span class="detail-label">Account Number:</span>
-            <span class="detail-value">${withdrawal.bankDetails.accNumber}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">IFSC Code:</span>
-            <span class="detail-value">${withdrawal.bankDetails.ifsc}</span>
-          </div>
+          ${bankDetailsHTML}
           <div class="detail-row">
             <span class="detail-label">Date & Time:</span>
             <span class="detail-value">${date}</span>
           </div>
           <div class="detail-row">
             <span class="detail-label">Status:</span>
-            <span class="detail-value" style="color: ${withdrawal.status === 'approved' ? '#00a86b' : withdrawal.status === 'rejected' ? '#ff4444' : '#ff9800'}">
-              ${withdrawal.status.toUpperCase()}
+            <span class="detail-value" style="color: ${withdrawal.status === 'approved' ? '#00a86b' : withdrawal.status === 'rejected' ? '#ff4444' : '#ff9800'}; font-weight: bold;">
+              ${withdrawal.status ? withdrawal.status.toUpperCase() : 'UNKNOWN'}
             </span>
           </div>
         `;
@@ -1648,14 +2195,23 @@
         const modalActions = document.getElementById('withdrawalModalActions');
         if (withdrawal.status === 'pending') {
           modalActions.innerHTML = `
-            <button class="modal-btn approve-btn" onclick="approveWithdrawalModal('${withdrawalKey}')">✅ Approve</button>
-            <button class="modal-btn reject-btn" onclick="rejectWithdrawalModal('${withdrawalKey}')">❌ Reject</button>
+            <button class="modal-btn approve-btn" onclick="approveWithdrawalModal('${withdrawalKey}')">
+              <i class="fas fa-check"></i> Approve
+            </button>
+            <button class="modal-btn reject-btn" onclick="rejectWithdrawalModal('${withdrawalKey}')">
+              <i class="fas fa-times"></i> Reject
+            </button>
           `;
         } else {
           modalActions.innerHTML = '<p style="text-align: center; color: #999;">No actions available</p>';
         }
         
         document.getElementById('withdrawalInspectModal').style.display = 'flex';
+        
+        console.log('✅ Modal displayed with full details');
+      }).catch(error => {
+        console.error('❌ Error loading withdrawal:', error);
+        showNotification('error', 'Failed to load withdrawal details');
       });
     }
 
@@ -1663,32 +2219,60 @@
       document.getElementById('withdrawalInspectModal').style.display = 'none';
     }
 
+    // ✅ FIXED: approveWithdrawalModal - PROPERLY APPROVES
     function approveWithdrawalModal(withdrawalKey) {
+      if (!confirm('Are you sure you want to APPROVE this withdrawal?')) {
+        return;
+      }
+      
+      console.log('✅ Approving withdrawal:', withdrawalKey);
+      
       database.ref('withdrawals/' + withdrawalKey).once('value').then(snapshot => {
         const withdrawal = snapshot.val();
-        database.ref('withdrawals/' + withdrawalKey + '/status').set('approved');
-        showNotification('success', `Withdrawal approved: ₹${withdrawal.amount}`);
-        closeWithdrawalModal();
-        loadStats();
+        
+        database.ref('withdrawals/' + withdrawalKey + '/status').set('approved')
+          .then(() => {
+            showNotification('success', `Withdrawal approved: ₹${withdrawal.amount}`);
+            closeWithdrawalModal();
+            loadStats();
+          })
+          .catch(error => {
+            console.error('Error approving withdrawal:', error);
+            showNotification('error', 'Failed to approve withdrawal');
+          });
       });
     }
 
+    // ✅ FIXED: rejectWithdrawalModal - PROPERLY REJECTS AND REFUNDS
     function rejectWithdrawalModal(withdrawalKey) {
-      if (!confirm('REJECT and REFUND this withdrawal?')) return;
+      if (!confirm('Are you sure you want to REJECT and REFUND this withdrawal?')) {
+        return;
+      }
+      
+      console.log('❌ Rejecting withdrawal:', withdrawalKey);
       
       database.ref('withdrawals/' + withdrawalKey).once('value').then(snapshot => {
         const withdrawal = snapshot.val();
         
         const cleanPhone = withdrawal.phone.replace(/[^0-9]/g, '');
+        
         database.ref('users/' + cleanPhone).once('value').then(userSnapshot => {
           const user = userSnapshot.val();
           const newBalance = (user.balance || 0) + withdrawal.amount;
-          database.ref('users/' + cleanPhone + '/balance').set(newBalance);
           
-          database.ref('withdrawals/' + withdrawalKey + '/status').set('rejected');
-          showNotification('success', 'Withdrawal rejected and amount refunded');
-          closeWithdrawalModal();
-          loadStats();
+          database.ref('users/' + cleanPhone + '/balance').set(newBalance)
+            .then(() => {
+              return database.ref('withdrawals/' + withdrawalKey + '/status').set('rejected');
+            })
+            .then(() => {
+              showNotification('success', 'Withdrawal rejected and amount refunded');
+              closeWithdrawalModal();
+              loadStats();
+            })
+            .catch(error => {
+              console.error('Error rejecting withdrawal:', error);
+              showNotification('error', 'Failed to reject withdrawal');
+            });
         });
       });
     }
@@ -1787,7 +2371,7 @@
               selectedNumber = null;
               updateSelectedNumberDisplay();
               startAdminTimer();
-            }, 1000); // Reduced from 3000 to 1000 for faster next round
+            }, 1000);
           });
         }
       }, 1000);
@@ -1799,12 +2383,12 @@
         attempts++;
         
         database.ref('results/' + roundId).once('value').then(snapshot => {
-          if (snapshot.exists() || attempts >= 3) { // Reduced from 10 to 3
+          if (snapshot.exists() || attempts >= 3) {
             clearInterval(checkResult);
             startAdminTimer();
           }
         });
-      }, 500); // Reduced from 1000 to 500
+      }, 500);
     }
 
     function updateAdminTimer() {
