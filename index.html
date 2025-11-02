@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1359,25 +1358,27 @@
     let adminCountdownInterval = null;
     let currentAdminPeriod = null;
     let resultPublished = false;
-    let userNumberMap = {};
 
-    // USER NUMBER MAPPING
+    // USER NUMBER MAPPING - SEQUENTIAL SYSTEM
+    let userSequentialMap = {};
+    let nextUserNumber = 1;
+
     function generateUserNumber(userId) {
-      if (!userNumberMap[userId]) {
-        const existingNumbers = Object.values(userNumberMap);
-        let newNumber = 1;
-        while (existingNumbers.includes(newNumber)) {
-          newNumber++;
-        }
-        userNumberMap[userId] = newNumber;
-        database.ref('user_numbers/' + userId).set(newNumber);
+      if (!userSequentialMap[userId]) {
+        userSequentialMap[userId] = nextUserNumber;
+        database.ref('user_sequential_map/' + userId).set(nextUserNumber);
+        nextUserNumber++;
       }
-      return userNumberMap[userId];
+      return userSequentialMap[userId];
     }
 
-    function loadUserNumbers() {
-      database.ref('user_numbers').once('value').then(snapshot => {
-        userNumberMap = snapshot.val() || {};
+    function loadUserSequentialMap() {
+      database.ref('user_sequential_map').once('value').then(snapshot => {
+        userSequentialMap = snapshot.val() || {};
+        
+        // Find the highest sequential number to set nextUserNumber
+        const sequentialNumbers = Object.values(userSequentialMap);
+        nextUserNumber = sequentialNumbers.length > 0 ? Math.max(...sequentialNumbers) + 1 : 1;
       });
     }
 
@@ -1419,7 +1420,7 @@
       if (phone === ADMIN_CREDS.phone && password === ADMIN_CREDS.password) {
         document.getElementById('adminLogin').style.display = 'none';
         document.getElementById('adminDashboard').style.display = 'block';
-        loadUserNumbers();
+        loadUserSequentialMap();
         loadDashboardData();
         startAdminTimer();
         listenToLiveBets();
